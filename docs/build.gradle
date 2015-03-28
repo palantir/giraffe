@@ -1,0 +1,42 @@
+apply from: "${rootProject.projectDir}/gradle/versions.gradle"
+
+apply plugin: 'base'
+
+version = rootProject.version
+group = rootProject.group
+
+ext {
+    docProjects = [':giraffe-core', ':giraffe-ssh', ':giraffe-fs-base'].collect { project(it) }
+}
+
+// projects must be evaluated to get classpaths for javadoc
+docProjects.each { p -> evaluationDependsOn p.path }
+
+task javadoc(type: Javadoc) {
+    group = 'Documentation'
+    description = 'Generates aggregate Javadocs.'
+
+    destinationDir = new File(buildDir, "javadoc")
+    title = "Giraffe ${version}"
+
+    source docProjects.collect { p ->
+        p.sourceSets.main.allJava
+    }
+
+    classpath = files(docProjects.collect { p ->
+        p.sourceSets.main.compileClasspath + p.sourceSets.main.output
+    })
+
+    options.group 'Client API', [
+        'com.palantir.giraffe',
+        'com.palantir.giraffe.file',
+        'com.palantir.giraffe.command*',
+        'com.palantir.giraffe.host',
+        'com.palantir.giraffe.ssh'
+    ]
+    options.group 'Extender API', ['com.palantir.giraffe.file.base*']
+}
+apply from: "${rootProject.projectDir}/gradle/javadoc.gradle", to: javadoc
+
+// --- define sphinx tasks
+apply from: 'sphinx.gradle'

@@ -1,0 +1,59 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+apply plugin: 'checkstyle'
+
+apply from: "${rootProject.projectDir}/gradle/versions.gradle"
+
+sourceCompatibility = 1.7
+targetCompatibility = 1.7
+
+version = rootProject.version
+group = rootProject.group
+
+repositories {
+    mavenCentral()
+}
+
+checkstyle {
+    configFile file("${rootProject.projectDir}/config/checkstyle/checkstyle.xml")
+}
+
+eclipse {
+    classpath {
+        defaultOutputDir = file('ecbuild')
+
+        def containerType = 'org.eclipse.jdt.launching.JRE_CONTAINER'
+        containers.remove(containerType)
+        containers "${containerType}/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"
+    }
+}
+
+eclipseJdt {
+    inputFile = file("${rootProject.projectDir}/config/eclipse/org.eclipse.jdt.core.prefs")
+    doLast {
+        copy {
+            from "${rootProject.projectDir}/config/eclipse/org.eclipse.jdt.ui.prefs"
+            into "${projectDir}/.settings"
+        }
+    }
+}
+
+tasks.withType(Test).all { test ->
+    test.testLogging {
+        showExceptions true
+        exceptionFormat 'full'
+
+        info {
+            showStackTraces true
+        }
+    }
+}
+
+dependencies {
+    checkstyle 'com.puppycrawl.tools:checkstyle:5.7'
+
+    testCompile group: 'junit', name: 'junit', version: libVersions.junit
+    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: libVersions.hamcrest
+}
+
+apply from: "${rootProject.projectDir}/gradle/javadoc.gradle", to: javadoc

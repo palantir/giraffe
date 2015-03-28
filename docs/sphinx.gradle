@@ -1,0 +1,69 @@
+ext {
+    sphinxEnvDir = "${buildDir}/sphinx-env"
+    sphinxBinary = "${sphinxEnvDir}/bin/sphinx-build"
+    sphinxBuildDir = "${buildDir}/htmldoc"
+}
+
+configurations {
+    virtualenv
+}
+
+repositories {
+    ivy {
+        name 'pypi'
+        url  'https://pypi.python.org/packages/source/v/'
+        layout 'pattern', {
+            artifact '[organisation]/[module]-[revision].[ext]'
+        }
+    }
+}
+
+dependencies {
+    virtualenv 'virtualenv:virtualenv:12.0.7@tar.gz'
+}
+
+task installVirtualenv(type: Copy) {
+    ext.virtualenvDir = new File(buildDir, 'virtualenv')
+
+    from tarTree({ configurations.virtualenv.singleFile }), {
+        eachFile {
+            def path = it.relativePath.segments[1..-1].join('/')
+            it.relativePath = RelativePath.parse(it.relativePath.isFile(), path)
+        }
+    }
+    into virtualenvDir
+}
+
+task sphinxEnv(type: Exec, dependsOn: installVirtualenv) {
+    outputs.dir sphinxEnvDir
+    commandLine 'python', "${installVirtualenv.virtualenvDir}/virtualenv.py", sphinxEnvDir
+}
+
+task cleanSphinxEnv << {
+    // use Ant because Gradle Delete task follows symlinks
+    ant.delete(includeemptydirs: 'true', removeNotFollowedSymlinks: 'true') {
+        fileset(dir: sphinxEnvDir, followsymlinks: 'false', erroronmissingdir: 'false', defaultexcludes: 'false')
+    }
+}
+clean.dependsOn cleanSphinxEnv
+
+task installPackages(type: Exec, dependsOn: sphinxEnv) {
+    inputs.source 'requirements.txt'
+
+    // TODO(bkeyes): use site-packages dir instead
+    outputs.file sphinxBinary
+
+    commandLine "${sphinxEnvDir}/bin/pip", 'install', '-r', 'requirements.txt'
+}
+
+task copyJavadoc(type: Copy) {
+    from javadoc.destinationDir
+    into new File(sphinxBuildDir, 'api')
+}
+
+task htmldoc(type: Exec, dependsOn: [installPackages, javadoc, copyJavadoc]) {
+    inputs.sourceDir 'src'
+    outputs.dir sphinxBuildDir
+
+    commandLine sphinxBinary, '-b', 'html', 'src', sphinxBuildDir
+}

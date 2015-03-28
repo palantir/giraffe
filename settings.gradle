@@ -1,0 +1,10 @@
+include 'fs-base'
+include 'core'
+include 'ssh'
+include 'test-util'
+include 'docs'
+
+rootProject.name = 'giraffe'
+rootProject.children.each { child ->
+    child.name = rootProject.name + '-' + child.name
+}

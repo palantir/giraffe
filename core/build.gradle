@@ -1,0 +1,53 @@
+apply from: "../gradle/shared.gradle"
+
+apply plugin: 'giraffe.system-test'
+apply plugin: 'giraffe.system-test-files'
+
+dependencies {
+    compile project(':giraffe-fs-base')
+
+    compile group: 'com.google.guava', name: 'guava', version: libVersions.guava
+    compile group: 'com.google.code.findbugs', name: 'jsr305', version: libVersions.jsr305
+    compile group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
+
+    testCompile project(':giraffe-test-util')
+    testCompile group: 'org.mockito', name: 'mockito-core', version: libVersions.mockito
+    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.2'
+}
+
+// configure the systemTest sourceset and configurations
+// requires creatorClass to be defined
+systemTest {
+    creatorClass = 'com.palantir.giraffe.command.test.creator.CreateTestFiles'
+}
+
+// the creator jar depends on script resources
+creatorJar {
+    from sourceSets.systemTest.output.resourcesDir
+}
+
+// systemTest requires main code (for ES definitions)
+sourceSets.systemTest.compileClasspath += sourceSets.main.output
+configurations {
+    systemTestCompile.extendsFrom compile
+}
+artifacts {
+    systemTest jar
+}
+
+// main tests require systemTest code (for local ES tests)
+sourceSets.test.compileClasspath += sourceSets.systemTest.output
+sourceSets.test.runtimeClasspath += sourceSets.systemTest.output
+
+systemTestFiles {
+    creators {
+        exec {
+            source project
+        }
+    }
+}
+
+test {
+    // included in LocalExecutionSystemSuite
+    exclude '**/LocalExecutionSystemConfigurationTest*'
+}

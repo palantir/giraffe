@@ -1,0 +1,16 @@
+a code, .rst-content a tt {
+    color: inherit;
+    font-size: 85%;
+    border: none;
+    padding: 0;
+}
+
+.giraffe-logo {
+    width: 20%;
+    margin: 24px;
+    float: right;
+}
+
+.epigraph {
+    font-style: italic;
+}
