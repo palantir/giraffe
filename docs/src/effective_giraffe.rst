@@ -198,6 +198,8 @@ than custom implementations of the same functionality.
 Command Execution
 =================
 
+.. _command-escaping:
+
 Don't escape arguments
 ----------------------
 
