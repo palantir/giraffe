@@ -83,17 +83,13 @@ public final class Commands {
     }
 
     /**
-     * Executes a command with the default context, throwing an exception if the
-     * exit status is non-zero.
+     * Synchronously executes a command with the default context.
      *
      * @param command the command to execute
      *
      * @return the {@linkplain CommandResult result} of executing the command
      *
-     * @throws CommandException if the command exits with a status other than
-     *         that specified by the {@link CommandContext}
-     * @throws ClosedExecutionSystemException if the command's execution system
-     *         is closed before or during execution
+     * @throws CommandException if the command exits with non-zero status
      * @throws IOException if an I/O error occurs while executing the command
      *
      * @see #execute(Command, CommandContext)
@@ -103,13 +99,9 @@ public final class Commands {
     }
 
     /**
-     * Executes a command with the specified context, throwing an exception if
-     * the exit status is non-zero. This method blocks until the command exits
-     * or the timeout is reached.
+     * Synchronously executes a command with the specified context.
      * <p>
-     * If a command's execution system is closed while it is executing, a
-     * best-effort attempt is made to terminate the command before throwing a
-     * {@code ClosedExecutionSystemException}.
+     * This method blocks until the command terminates.
      *
      * @param command the command to execute
      * @param context the {@link CommandContext}
@@ -118,8 +110,6 @@ public final class Commands {
      *
      * @throws CommandException if the command exits with a status other than
      *         that specified by the {@link CommandContext}
-     * @throws ClosedExecutionSystemException if the command's execution system
-     *         is closed before or during execution
      * @throws IOException if an I/O error occurs while executing the command
      */
     public static CommandResult execute(Command command, CommandContext context)
@@ -130,18 +120,21 @@ public final class Commands {
     }
 
     /**
+     * Synchronously executes a command with the default context and the
+     * given timeout.
+     *
      * @param command the command to execute
-     * @param timeout the maximum time to time
-     * @param timeUnit the time unit of the timout argument
+     * @param timeout the maximum time to wait for the command to terminate
+     * @param timeUnit the unit of the timeout argument
      *
      * @return the {@linkplain CommandResult result} of executing the command
      *
      * @throws CommandException if the command exits with a non-zero status
-     * @throws ClosedExecutionSystemException if the command's execution system
-     *         is closed before or during execution
      * @throws IOException if an I/O error occurs while executing the command
-     * @throws TimeoutException if the command times out; in this event, the
-     *         command execution will also be cancelled as best as possible
+     * @throws TimeoutException if the timeout is reached before the command
+     *         terminates
+     *
+     * @see #execute(Command, CommandContext, long, TimeUnit)
      */
     public static CommandResult execute(
             Command command,
@@ -151,20 +144,24 @@ public final class Commands {
     }
 
     /**
+     * Synchronously executes a command with the given context and timeout.
+     * <p>
+     * This method blocks until the command terminates or the timeout is
+     * reached. When the timeout is reached, a best-effort attempt is made to
+     * cancel the command before throwing a {@code TimeoutException}.
+     *
      * @param command the command to execute
      * @param context the {@link CommandContext}
-     * @param timeout the maximum time to wait (must be at least 0)
-     * @param timeUnit the time unit of the timout argument
+     * @param timeout the maximum time to wait for the command to terminate
+     * @param timeUnit the unit of the timeout argument
      *
      * @return the {@linkplain CommandResult result} of executing the command
      *
      * @throws CommandException if the command exits with a status other than
      *         that specified by the {@link CommandContext}
-     * @throws ClosedExecutionSystemException if the command's execution system
-     *         is closed before or during execution
      * @throws IOException if an I/O error occurs while executing the command
-     * @throws TimeoutException if the command times out; in this event, the
-     *         command execution will also be cancelled as best as possible
+     * @throws TimeoutException if the timeout is reached before the command
+     *         terminates
      */
     public static CommandResult execute(
             Command command,
@@ -193,14 +190,14 @@ public final class Commands {
     }
 
     /**
-     * Executes a command asynchronously with the specified context. This method
-     * return a {@link CommandFuture} which allows clients to wait for the
-     * command to finish and access the output streams while the command is in
+     * Executes a command asynchronously with the specified context. Returns a
+     * {@link CommandFuture} that allows clients to wait for the command to
+     * finish and access input and output streams while the command is in
      * progress.
      * <p>
      * Any errors encountered during execution are reported through the returned
-     * future. Execution is unverified, meaning the exit status of the command
-     * is not checked.
+     * future. This includes {@link CommandException}s caused by the
+     * context's exit status check.
      * <p>
      * If a command's execution system is closed while it is executing, a
      * best-effort attempt is made to terminate the command. If this occurs, the
@@ -220,8 +217,11 @@ public final class Commands {
     }
 
     /**
-     * Performs an uninterruptable block on the given {@code CommandFuture}
-     * waiting until it completes execution.
+     * Waits for the command associated with a {@code CommandFuture} to
+     * terminate.
+     * <p>
+     * This method is uninterruptible; to allow interruption, use
+     * {@link CommandFuture#get()}.
      *
      * @param future the {@link CommandFuture} to block on
      *
@@ -242,11 +242,13 @@ public final class Commands {
     }
 
     /**
-     * Performs an uninterruptable block on the given {@code CommandFuture}
-     * waiting until it completes execution or the timeout is reached.
+     * Waits for the command associated with a {@code CommandFuture} to
+     * terminate or the timeout to be reached. If the timeout is reached, a
+     * best-effort attempt is made to cancel the command before throwing a
+     * {@code TimeoutException}.
      * <p>
-     * If the timeout is reached, a best-effort attempt is made to cancel the
-     * process before throwing a {@code TimeoutException}.
+     * This method is uninterruptible; to allow interruption, use
+     * {@link CommandFuture#get(long, TimeUnit)}.
      *
      * @param future the {@link CommandFuture} to block on
      *
