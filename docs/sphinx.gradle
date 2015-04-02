@@ -57,7 +57,7 @@ task installPackages(type: Exec, dependsOn: sphinxEnv) {
 }
 
 task copyJavadoc(type: Copy) {
-    from javadoc.destinationDir
+    from javadoc
     into new File(sphinxBuildDir, 'api')
 }
 
