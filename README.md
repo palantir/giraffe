@@ -1,4 +1,4 @@
-<img src="docs/src/logo.svg" alt="The Giraffe logo, a giraffe wearing glasses" width="160" height ="160"/>
+<img src="docs/src/logo.png?raw=true" alt="The Giraffe logo, a giraffe wearing glasses" width="160" height ="160"/>
 
 # Giraffe
 
