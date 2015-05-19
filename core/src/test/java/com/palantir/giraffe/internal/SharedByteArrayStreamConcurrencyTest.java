@@ -30,17 +30,17 @@ import com.palantir.giraffe.internal.SharedByteArrayStream.SharedOutputStream;
 public class SharedByteArrayStreamConcurrencyTest {
 
     /**
-     * Number of test iterations
+     * Number of test iterations.
      */
     private static final int ITERATIONS = 15;
 
     /**
-     * Amount of data to read/write in each iteration
+     * Amount of data to read/write in each iteration.
      */
     private static final int DATA_SIZE = 8192;
 
     /**
-     * Number of chunks to split data into for writing
+     * Number of chunks to split data into for writing.
      */
     private static final int DATA_CHUNKS = 64;
 

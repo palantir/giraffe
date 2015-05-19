@@ -42,20 +42,20 @@ import com.palantir.giraffe.file.base.feature.RecursivePermissions;
 public final class MoreFiles {
 
     private static final DirectoryStream.Filter<Path> FILE_FILTER =
-            new DirectoryStream.Filter<Path>() {
-                @Override
-                public boolean accept(Path entry) throws IOException {
-                    return Files.isRegularFile(entry);
-                }
-            };
+        new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path entry) throws IOException {
+                return Files.isRegularFile(entry);
+            }
+        };
 
     private static final DirectoryStream.Filter<Path> DIRECTORY_FILTER =
-            new DirectoryStream.Filter<Path>() {
-                @Override
-                public boolean accept(Path entry) throws IOException {
-                    return Files.isDirectory(entry);
-                }
-            };
+        new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path entry) throws IOException {
+                return Files.isDirectory(entry);
+            }
+        };
 
     /**
      * Returns a directory filter that matches {@linkplain Files#isRegularFile

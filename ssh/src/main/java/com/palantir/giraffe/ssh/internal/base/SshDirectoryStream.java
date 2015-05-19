@@ -14,13 +14,13 @@ import net.schmizz.sshj.sftp.RemoteResourceInfo;
 final class SshDirectoryStream extends AbstractFilteredDirectoryStream<Path> {
 
     private static final Predicate<RemoteResourceInfo> META_FILTER =
-            new Predicate<RemoteResourceInfo>() {
-                @Override
-                public boolean apply(RemoteResourceInfo input) {
-                    String filename = input.getName();
-                    return !filename.equals(".") && !filename.equals("..");
-                }
-            };
+        new Predicate<RemoteResourceInfo>() {
+            @Override
+            public boolean apply(RemoteResourceInfo input) {
+                String filename = input.getName();
+                return !filename.equals(".") && !filename.equals("..");
+            }
+        };
 
     private final BaseSshPath<?> dir;
     private final Iterator<RemoteResourceInfo> entryIterator;

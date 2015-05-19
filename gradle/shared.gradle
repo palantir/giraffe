@@ -50,7 +50,7 @@ tasks.withType(Test).all { test ->
 }
 
 dependencies {
-    checkstyle 'com.puppycrawl.tools:checkstyle:5.7'
+    checkstyle 'com.puppycrawl.tools:checkstyle:6.6'
 
     testCompile group: 'junit', name: 'junit', version: libVersions.junit
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: libVersions.hamcrest
