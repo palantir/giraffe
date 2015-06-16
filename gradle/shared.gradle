@@ -2,7 +2,9 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
 
-apply from: "${rootProject.projectDir}/gradle/versions.gradle"
+apply plugin: 'com.github.hierynomus.license'
+
+apply from: rootProject.file('gradle/versions.gradle')
 
 sourceCompatibility = 1.7
 targetCompatibility = 1.7
@@ -15,7 +17,7 @@ repositories {
 }
 
 checkstyle {
-    configFile file("${rootProject.projectDir}/config/checkstyle/checkstyle.xml")
+    configFile rootProject.file('config/checkstyle/checkstyle.xml')
 }
 
 eclipse {
@@ -29,10 +31,10 @@ eclipse {
 }
 
 eclipseJdt {
-    inputFile = file("${rootProject.projectDir}/config/eclipse/org.eclipse.jdt.core.prefs")
+    inputFile = rootProject.file('config/eclipse/org.eclipse.jdt.core.prefs')
     doLast {
         copy {
-            from "${rootProject.projectDir}/config/eclipse/org.eclipse.jdt.ui.prefs"
+            from rootProject.file('/config/eclipse/org.eclipse.jdt.ui.prefs')
             into "${projectDir}/.settings"
         }
     }
@@ -56,4 +58,13 @@ dependencies {
     testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: libVersions.hamcrest
 }
 
-apply from: "${rootProject.projectDir}/gradle/javadoc.gradle", to: javadoc
+apply from: rootProject.file('gradle/javadoc.gradle'), to: javadoc
+
+license {
+    header rootProject.file('config/HEADER')
+    skipExistingHeaders true
+
+    ext.year = Calendar.getInstance().get(Calendar.YEAR)
+
+    include '**/*.java'
+}
