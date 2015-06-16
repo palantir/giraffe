@@ -10,103 +10,83 @@ Gracefully Integrated Remote Access For Files and Execution
 Giraffe is a Java library that integrates local and remote file system access
 with command execution behind a common, familiar API. It combines new classes
 for command execution with remote implementations of the `java.nio.file` API
-introduced in JDK7.
+introduced in Java 7.
 
-    Host example = Host.fromHostname("example.com");
-    SshHost<?> ssh = SshHost.authWithPassword(example, "giraffe", "l0ngN3ck");
+```java
+Host example = Host.fromHostname("example.com");
+SshHost<?> ssh = SshHost.authWithPassword(example, "giraffe", "l0ngN3ck");
 
-    try (HostControlSystem hcs = HostControlSystems.openRemote(ssh)) {
-        Path logs = hcs.getPath("server/logs");
-        Files.copy(logs.resolve("access.log"), Paths.get("log/example-access.log");
+try (HostControlSystem hcs = HostControlSystems.openRemote(ssh)) {
+    Path logs = hcs.getPath("server/logs");
+    Files.copy(logs.resolve("access.log"), Paths.get("log/example-access.log");
 
-        Command archive = hcs.getCommand("server/bin/archive.sh", "--format=zip", "logs");
-        Commands.execute(archive);
-    }
+    Command archive = hcs.getCommand("server/bin/archive.sh", "--format=zip", "logs");
+    Commands.execute(archive);
+}
+```
 
-## Using Giraffe
+## Get Giraffe
+
+Giraffe is available from Palantir's [Bintray repository][bintray].
 
 Most projects that use Giraffe include the `core` project and one or more
 remote implementations. Currently, `ssh` is the only remote implementation.
 
-In **Gradle**:
+With **Gradle**:
 
-    dependencies {
-        compile 'com.palantir.giraffe:giraffe-core:0.6.0'
-
-        // remote implementations
-        compile 'com.palantir.giraffe:giraffe-ssh:0.6.0'
+```gradle
+repositories {
+    mavenCentral()
+    maven {
+        url 'http://dl.bintray.com/palantir/releases'
     }
+}
 
-## Versions and Public API
+dependencies {
+    compile 'com.palantir.giraffe:giraffe-core:0.6.0'
+    compile 'com.palantir.giraffe:giraffe-ssh:0.6.0'
+}
+```
 
-Giraffe is [semantically versioned][semver] with respect to the _client_ public
-API. It follows a modified scheme for the _extender_ public API.
+[bintray]: http://dl.bintray.com/palantir/releases
 
-The public APIs and version schemes are defined for clarity and completeness.
-As a result, many "major" releases may be safe, routine updates most users.
-Always check the changelog before deciding whether or not to update to a new
-release.
+## Why Giraffe?
 
-The **Client API** defines compatibility for users who do _not_ extend any
-Giraffe classes or interfaces and includes:
+Why did we write Giraffe and why might you use it?
 
-1. All public classes and interfaces in the following packages, the methods of
-   these types, and any behavior documented by or in relation to these types.
+While working on deployment and test tools we found many situations where we
+wanted to write code that worked easily on both the local host and remote hosts
+using SSH. This required at least three different APIs with different
+abstractions:
 
-    * `com.palantir.giraffe`
-    * `com.palantir.giraffe.command`
-    * `com.palantir.giraffe.command.interactive`
-    * `com.palantir.giraffe.command.spi`
-    * `com.palantir.giraffe.controller`
-    * `com.palantir.giraffe.file`
-    * `com.palantir.giraffe.host`
-    * `com.palantir.giraffe.ssh`
+1. Native Java functionality (with third-party utilities) for local files
+2. Native Java functionality or commons-exec for local command execution
+3. An SSH library (sshj, jsch, ganymed-ssh2) for remote file manipulation and
+   command execution
 
-2. The existence of dependencies exposed by the types in (1)
-3. The minimum versions of the dependencies in (2)
+This led to duplicated abstraction layers in our projects and complicated code
+that had to know what type of host it was targeting.
 
-Incompatible changes to any of these items result in a new MAJOR version
-number. Incompatible changes to the client API are primarily removals. In other
-words, any change that breaks code that calls methods on Giraffe types.
+With Giraffe, a single library is required and there are only two APIs: native
+Java functionality for files and an intentionally similar API for command
+execution.
 
-The **Extender API** defines compatibility for users who extend Giraffe
-classes, either to add functionality or to implement a system provider. It
-includes:
+### Alternatives
 
-1. All public classes and interfaces in the packages defined by the client API
-   and the following packages, the methods of these types, and any behavior
-   documented by or in relation to these types.
+The closest equivalent to Giraffe is XebiaLabs's [Overthere][overthere]. In our
+view, Giraffe has two major benefits when compared to Overthere:
 
-    * `com.palantir.giraffe.file.base`
+1. It's offered under the Apache 2.0 license instead of GPLv2
+2. It uses the standard `java.nio.file` API introduced in Java 7
 
-2. The existence of dependencies exposed by the types in (1)
-3. The minimum versions of the dependencies in (2)
+That said, _Overthere_ supports more protocols and supports Windows, which may
+make it more appropriate for your use case.
 
-Incompatible changes to any of these items that are _not_ part of the client
-API result in a new MINOR version number. Incompatible changes to the
-extender API are primarily additions to client API classes and removals,
-additions, and modifications to other classes. In other words, any change that
-breaks code that extends or implements Giraffe types.
-
-For classes and interfaces in both APIs, "incompatible" refers to _compile_
-compatibility, not _binary_ compatibility.
-
-While Giraffe is in initial development (0.y.z), we make a best-effort attempt
-to update the minor version number as if it were the major version when
-changing the public API.
-
-We reserve the ability to change any undocumented implementation details in the
-interest of fixing bugs, improving code quality, or improving performance. If
-you depend on undocumented observed behavior that you think should be defined,
-please file an issue.
-
-We also reserve the ability to add, remove, or update dependencies that are not
-exposed by public types.
-
-The definition of the public API may expand at any time. Removing any elements
-from the definition requires a major version number change.
-
-[semver]: http://semver.org/
+[commons-exec]: https://commons.apache.org/proper/commons-exec/
+[sshj]: https://github.com/hierynomus/sshj
+[jsch]: http://www.jcraft.com/jsch/
+[ganymed-ssh2]: https://code.google.com/p/ganymed-ssh-2/
+[overthere]: https://github.com/xebialabs/overthere
 
 ## Support
 
@@ -120,3 +100,13 @@ version release.
 
 *No supported old releases at this time*
 
+## Development
+
+Giraffe builds with Gradle and is configured to use Eclipse as an IDE:
+
+```shell
+$ ./gradlew eclipse     # generate Eclipse projects
+$ ./gradlew build       # compile libraries and run tests
+```
+
+See `./gradlew tasks` for more options.
