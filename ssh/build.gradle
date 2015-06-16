@@ -1,0 +1,39 @@
+apply from: '../gradle/shared.gradle'
+
+apply plugin: 'giraffe.system-test-files'
+
+dependencies {
+    compile project(':giraffe-core')
+
+    compile group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
+    compile(group: 'com.hierynomus', name: 'sshj', version: '0.12.0') {
+        // force our version of slf4j-api in a way that persists in Ivy
+        exclude module: 'slf4j-api'
+    }
+
+    testCompile project(path: ':giraffe-fs-base', configuration: 'systemTest')
+    testCompile project(path: ':giraffe-core', configuration: 'systemTest')
+
+    testCompile(group: 'org.apache.sshd', name: 'sshd-core', version: '0.13.0') {
+        // exclude optional Maven dependencies
+        exclude module: 'tomcat-apr'
+    }
+    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.2'
+}
+
+systemTestFiles {
+    creators {
+        file {
+            source project(':giraffe-fs-base')
+        }
+
+        exec {
+            source project(':giraffe-core')
+        }
+    }
+}
+
+// configure unit tests
+test {
+    include '**/EmbeddedSsh*Suite*'
+}

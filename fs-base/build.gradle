@@ -1,0 +1,14 @@
+apply from: '../gradle/shared.gradle'
+
+apply plugin: 'giraffe.system-test'
+
+dependencies {
+    compile group: 'com.google.guava', name: 'guava', version: libVersions.guava
+    compile group: 'com.google.code.findbugs', name: 'jsr305', version: libVersions.jsr305
+
+    testCompile group: 'org.mockito', name: 'mockito-core', version: libVersions.mockito
+}
+
+systemTest {
+    creatorClass = 'com.palantir.giraffe.file.test.creator.CreateTestFiles'
+}

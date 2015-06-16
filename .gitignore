@@ -1,0 +1,12 @@
+# Gradle files
+.gradle/
+build/
+
+# Eclipse files
+.project
+.classpath
+.settings/
+ecbuild/
+
+# Sphinx/Python files
+*.pyc

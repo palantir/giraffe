@@ -1,0 +1,9 @@
+# Set default behavior, used when core.autocrlf is unset
+*           text=auto
+
+# Normalize all source files on commit, convert to native on checkout
+*.java      text
+*.gradle    text
+
+# Force Windows batch files to have Windows line endings
+*.bat       text eol=crlf

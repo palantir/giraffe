@@ -1,0 +1,22 @@
+buildscript {
+    repositories {
+        maven {
+            url 'http://dl.bintray.com/palantir/releases'
+        }
+        mavenCentral()
+    }
+
+    dependencies {
+        classpath 'com.palantir:gradle-flexversion:0.4.0'
+    }
+}
+
+apply plugin: 'gradle-flexversion'
+apply from: 'gradle/versions.gradle'
+
+flexversion {
+    useTags = true
+}
+
+version flexVersion()
+group = 'com.palantir.giraffe'
