@@ -15,6 +15,7 @@ apply plugin: 'gradle-flexversion'
 apply from: 'gradle/versions.gradle'
 
 flexversion {
+    envvarSources << 'TRAVIS_BRANCH'
     useTags = true
 }
 
