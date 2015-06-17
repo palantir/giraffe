@@ -29,6 +29,8 @@ import java.util.EnumSet;
 import javax.annotation.concurrent.GuardedBy;
 import javax.annotation.concurrent.ThreadSafe;
 
+import com.google.common.annotations.VisibleForTesting;
+
 /**
  * Provides output and input streams that read and write to the same array.
  * Automatically increases size as needed.
@@ -39,6 +41,8 @@ import javax.annotation.concurrent.ThreadSafe;
 @ThreadSafe
 final class SharedByteArrayStream implements Closeable {
 
+    // from JDK ArrayList implementation
+    private static final int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;
     private static final int DEFAULT_BUFFER_SIZE = 1024;
 
     private enum Mode {
@@ -248,18 +252,48 @@ final class SharedByteArrayStream implements Closeable {
      * are available.
      */
     @GuardedBy("lock")
-    private void resize(int spaceNeeded) {
-        int multiplier = 2;
-        while (writeSize() + (buffer.length * (multiplier - 1)) < spaceNeeded) {
-            multiplier *= 2;
+    private void resize(int spaceNeeded) throws IOException {
+        int newLength = computeResize(writeSize(), spaceNeeded, buffer.length);
+        if (newLength < 0) {
+            throw new IOException("maximum buffer size exceeded");
         }
-        byte[] newBuffer = new byte[buffer.length * multiplier];
+        byte[] newBuffer = new byte[newLength];
 
         int oldReadSize = readSize();
         copyOut(newBuffer, 0, oldReadSize);
         buffer = newBuffer;
         readPosition = 0;
         writePosition = oldReadSize;
+    }
+
+    /**
+     * Computes the new size of the buffer during a resize.
+     *
+     * @param available the amount currently in the buffer
+     * @param needed the amount of space needed for the write
+     * @param length the current buffer length
+     *
+     * @return the size of the new buffer or -1 if the maximum size is exceeded
+     */
+    @VisibleForTesting
+    int computeResize(int available, int needed, int length) {
+        assert available < needed : "no resize necessary";
+        assert available < length : "available is larger than length";
+
+        // long to avoid int overflow during computation
+        long additional = 0;
+        for (int i = 1; additional + available < needed; i++) {
+            // double length each iteration (2^i - 1, to account for initial length)
+            additional = (long) length * ((1 << i) - 1);
+        }
+
+        // min() constrains to int range
+        int newLength = (int) Math.min(length + additional, MAX_BUFFER_SIZE);
+        if (newLength - length + available < needed) {
+            return -1;
+        } else {
+            return newLength;
+        }
     }
 
     private static void checkArray(byte[] b, int off, int len) {
