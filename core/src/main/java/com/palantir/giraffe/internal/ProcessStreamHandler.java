@@ -111,8 +111,8 @@ final class ProcessStreamHandler {
     }
 
     public CommandResult toResult(int exitStatus, Charset charset) {
-        String stdOut = new String(stdout.readRemainingData(), charset);
-        String stdErr = new String(stderr.readRemainingData(), charset);
+        String stdOut = new String(stdout.getBufferedData(), charset);
+        String stdErr = new String(stderr.getBufferedData(), charset);
         return new CommandResult(exitStatus, stdOut, stdErr);
     }
 

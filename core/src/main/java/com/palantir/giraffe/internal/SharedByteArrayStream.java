@@ -57,11 +57,12 @@ final class SharedByteArrayStream implements Closeable {
 
     private final int windowSize;
 
-    // readPosition is the first byte that can be read
+    // startPosition is the first byte of the window
+    // readPosition is the first byte unread byte
     // writePosition is the first empty element
 
     // empty when readPosition == writePosition
-    // full when (writePosition + 1) % size == readPosition
+    // full when (writePosition + 1) % size == startPosition
 
     // if READ is in modes, the input stream is open
     // if WRITE is in modes, the output stream is open
@@ -74,6 +75,9 @@ final class SharedByteArrayStream implements Closeable {
 
     @GuardedBy("lock")
     private byte[] buffer;
+
+    @GuardedBy("lock")
+    private int startPosition = 0;
 
     @GuardedBy("lock")
     private int readPosition = 0;
@@ -142,7 +146,7 @@ final class SharedByteArrayStream implements Closeable {
                 if (total == 0) {
                     return -1;
                 } else {
-                    return copyOut(b, off, Math.min(len, total));
+                    return readFromBuffer(b, off, Math.min(len, total));
                 }
             }
         }
@@ -200,12 +204,12 @@ final class SharedByteArrayStream implements Closeable {
                 if (length > writeSize()) {
                     makeSpace(length);
                 }
-                copyIn(b, offset, length);
+                writeToBuffer(b, offset, length);
 
                 // discard data now outside of the window
-                int readSize = readSize();
-                if (readSize > windowSize) {
-                    advanceReadPosition(readSize - windowSize);
+                int bufferedSize = bufferedSize();
+                if (bufferedSize > windowSize) {
+                    advanceStartPosition(bufferedSize - windowSize);
                 }
 
                 lock.notifyAll();
@@ -233,25 +237,68 @@ final class SharedByteArrayStream implements Closeable {
         return modes.contains(mode);
     }
 
+    /**
+     * Total amount of data currently in the buffer.
+     */
+    @GuardedBy("lock")
+    private int bufferedSize() {
+        int count = writePosition - startPosition;
+        return (count < 0) ? count + buffer.length : count;
+    }
+
+    /**
+     * Amount of unread data in the buffer.
+     */
     @GuardedBy("lock")
     private int readSize() {
         int count = writePosition - readPosition;
         return (count < 0) ? count + buffer.length : count;
     }
 
+    /**
+     * Amount of space available for writing in the buffer.
+     */
     @GuardedBy("lock")
     private int writeSize() {
-        int count = readPosition - (writePosition + 1);
+        int count = startPosition - (writePosition + 1);
         return (count < 0) ? count + buffer.length : count;
     }
 
     @GuardedBy("lock")
-    private int copyOut(byte[] b, int off, int len) {
+    private int readFromBuffer(byte[] b, int off, int len) {
         assert len <= readSize() : "len (" + len + ") > size (" + readSize() + ")";
+
+        copyOut(readPosition, b, off, len);
+        advanceReadPosition(len);
+        return len;
+    }
+
+    @GuardedBy("lock")
+    private void writeToBuffer(byte[] b, int off, int len) {
+        assert len <= writeSize() : "len (" + len + ") > size (" + writeSize() + ")";
+        copyIn(writePosition, b, off, len);
+        advanceWritePosition(len);
+    }
+
+    @GuardedBy("lock")
+    private int copyFromBuffer(byte[] b, int off, int len) {
+        assert len <= bufferedSize() : "len (" + len + ") > size (" + bufferedSize() + ")";
+
+        copyOut(startPosition, b, off, len);
+        return len;
+    }
+
+    /**
+     * Copies {@code len} bytes from {@code b} at {@code off} into the buffer at
+     * {@code position}.
+     */
+    @GuardedBy("lock")
+    private void copyOut(int position, byte[] b, int off, int len) {
+        assert len <= buffer.length : "len (" + len + ") > size (" + buffer.length + ")";
         int total = 0;
 
-        int copyLen = Math.min(len, buffer.length - readPosition);
-        System.arraycopy(buffer, readPosition, b, off, copyLen);
+        int copyLen = Math.min(len, buffer.length - position);
+        System.arraycopy(buffer, position, b, off, copyLen);
         total += copyLen;
 
         if (total < len) {
@@ -259,18 +306,19 @@ final class SharedByteArrayStream implements Closeable {
             System.arraycopy(buffer, 0, b, off + total, copyLen);
             total += copyLen;
         }
-
-        advanceReadPosition(total);
-        return len;
     }
 
+    /**
+     * Copies {@code len} bytes from the buffer at {@code position} into
+     * {@code b} at {@code off}.
+     */
     @GuardedBy("lock")
-    private int copyIn(byte[] b, int off, int len) {
-        assert len <= writeSize() : "len (" + len + ") > size (" + writeSize() + ")";
+    private void copyIn(int position, byte[] b, int off, int len) {
+        assert len <= buffer.length : "len (" + len + ") > size (" + buffer.length + ")";
         int total = 0;
 
-        int copyLen = Math.min(len, buffer.length - writePosition);
-        System.arraycopy(b, off, buffer, writePosition, copyLen);
+        int copyLen = Math.min(len, buffer.length - position);
+        System.arraycopy(b, off, buffer, position, copyLen);
         total += copyLen;
 
         if (total < len) {
@@ -278,11 +326,7 @@ final class SharedByteArrayStream implements Closeable {
             System.arraycopy(b, off + total, buffer, 0, copyLen);
             total += copyLen;
         }
-
-        advanceWritePosition(total);
-        return len;
     }
-
 
     /**
      * Creates space in the buffer, either by resizing or discarding data.
@@ -294,7 +338,7 @@ final class SharedByteArrayStream implements Closeable {
         int capacity = buffer.length - 1;
         if (needed < capacity && capacity > windowSize) {
             // the new data should fit if we discard data outside the window
-            advanceReadPosition(needed - writeSize());
+            advanceStartPosition(needed - writeSize());
         } else {
             resize(needed);
         }
@@ -311,21 +355,52 @@ final class SharedByteArrayStream implements Closeable {
         }
         byte[] newBuffer = new byte[newLength];
 
-        int oldReadSize = readSize();
-        copyOut(newBuffer, 0, oldReadSize);
+        int readSize = readSize();
+        int bufferedSize = bufferedSize();
+        copyFromBuffer(newBuffer, 0, bufferedSize);
+
         buffer = newBuffer;
-        readPosition = 0;
-        writePosition = oldReadSize;
+        startPosition = 0;
+        readPosition = bufferedSize - readSize;
+        writePosition = bufferedSize;
+    }
+
+    @GuardedBy("lock")
+    private void advanceStartPosition(int n) {
+        // if we will drop unread data, move the read position
+        if (isCross(startPosition, readPosition, n, buffer.length)) {
+            advanceReadPosition(n);
+        }
+        startPosition = advance(startPosition, n, buffer.length);
     }
 
     @GuardedBy("lock")
     private void advanceReadPosition(int n) {
-        readPosition = (readPosition + n) % buffer.length;
+        readPosition = advance(readPosition, n, buffer.length);
     }
 
     @GuardedBy("lock")
     private void advanceWritePosition(int n) {
-        writePosition = (writePosition + n) % buffer.length;
+        writePosition = advance(writePosition, n, buffer.length);
+    }
+
+    private static int advance(int position, int n, int length) {
+        return (int) (((long) position + n) % length);
+    }
+
+    /**
+     * Determines if advancing {@code position} by {@code n} crosses (ends
+     * strictly ahead of) {@code fixed}. Assumes {@code position} starts behind
+     * or equal with {@code fixed} in the buffer.
+     */
+    private static boolean isCross(int position, int fixed, int n, int length) {
+        if (position < fixed) {
+            return n > fixed - position;
+        } else if (position > fixed) {
+            return (n - (length - position)) > fixed;
+        } else {
+            return n > 0;
+        }
     }
 
     /**
@@ -374,13 +449,13 @@ final class SharedByteArrayStream implements Closeable {
     }
 
     /**
-     * Reads the remaining data from the input stream and returns it as a byte array.
+     * Returns the buffered data from the input stream as a byte array.
      */
-    public byte[] readRemainingData() {
+    public byte[] getBufferedData() {
         synchronized (lock) {
-            int readSize = readSize();
-            byte[] data = new byte[readSize];
-            copyOut(data, 0, readSize);
+            int bufferedSize = bufferedSize();
+            byte[] data = new byte[bufferedSize];
+            copyFromBuffer(data, 0, bufferedSize);
             return data;
         }
     }

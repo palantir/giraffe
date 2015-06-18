@@ -43,6 +43,19 @@ public class SharedByteArrayStreamTest {
     }
 
     @Test
+    public void readPreservesBufferContent() throws IOException {
+        byte[] writeBuf = new byte[32];
+        random.nextBytes(writeBuf);
+
+        byte[] readBuf = new byte[16];
+
+        stream.getOutputStream().write(writeBuf);
+        stream.getInputStream().read(readBuf, 0, 16);
+
+        assertArrayEquals("incorrect buffer data", writeBuf, stream.getBufferedData());
+    }
+
+    @Test
     public void readWithWindow() throws IOException {
         byte[] writeBuf = new byte[40];
         random.nextBytes(writeBuf);
