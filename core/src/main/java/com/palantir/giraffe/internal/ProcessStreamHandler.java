@@ -22,10 +22,12 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
 
+import com.google.common.base.Optional;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFutureTask;
 import com.google.common.util.concurrent.Uninterruptibles;
+import com.palantir.giraffe.command.CommandContext;
 import com.palantir.giraffe.command.CommandResult;
 
 final class ProcessStreamHandler {
@@ -48,14 +50,22 @@ final class ProcessStreamHandler {
     private StreamCopier errCopier;
     private StreamCopier inCopier;
 
-    public ProcessStreamHandler() {
+    public ProcessStreamHandler(CommandContext context) {
         copierLatch = new CountDownLatch(NUM_COPIERS);
 
-        stdout = new SharedByteArrayStream();
-        stderr = new SharedByteArrayStream();
+        stdout = newStreamWithWindow(context.getStdoutWindowSize());
+        stderr = newStreamWithWindow(context.getStderrWindowSize());
         stdin = new SharedByteArrayStream();
 
         listeners = new CopyOnWriteArrayList<>();
+    }
+
+    private static SharedByteArrayStream newStreamWithWindow(Optional<Integer> window) {
+        if (window.isPresent()) {
+            return new SharedByteArrayStream(window.get());
+        } else {
+            return new SharedByteArrayStream();
+        }
     }
 
     public InputStream getOutput() {

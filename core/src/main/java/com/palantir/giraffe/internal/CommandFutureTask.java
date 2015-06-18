@@ -52,7 +52,7 @@ public abstract class CommandFutureTask extends AbstractFuture<CommandResult>
         this.context = context;
         this.executor = executor;
 
-        handler = new ProcessStreamHandler();
+        handler = new ProcessStreamHandler(context);
         processRef = new AtomicReference<>();
     }
 

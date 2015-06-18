@@ -15,6 +15,8 @@
  */
 package com.palantir.giraffe.command;
 
+import static com.google.common.base.Preconditions.checkArgument;
+
 import java.nio.file.Path;
 
 import com.google.common.base.Optional;
@@ -48,6 +50,8 @@ public final class CommandContext {
         private CommandEnvironment environment = CommandEnvironment.defaultEnvironment();
         private Predicate<Integer> exitStatusVerifier = Predicates.equalTo(0);
         private Optional<UniformPath> workingDir = Optional.absent();
+        private Optional<Integer> stdoutWindow = Optional.absent();
+        private Optional<Integer> stderrWindow = Optional.absent();
 
         private Builder() {
             // use static builder() method externally
@@ -136,6 +140,42 @@ public final class CommandContext {
         }
 
         /**
+         * Discards all output from commands. Equivalent to
+         * {@link #outputWindowSizes(int, int) outputWindowSizes(0, 0)}.
+         *
+         * @return this builder
+         */
+        public Builder discardOutput() {
+            return outputWindowSizes(0, 0);
+        }
+
+        /**
+         * Sets the window sizes for the process output streams.
+         * <p>
+         * The size of the window determines the amount of recent output
+         * buffered for reading. If data is written beyond the window size
+         * without corresponding reads, data older than the window is discarded.
+         * A window size of 0 discards all data.
+         * <p>
+         * By default, there is no window and buffering is limited by the
+         * maximum size of the buffer array (effectively a window of size
+         * {@code Integer.MAX_VALUE}).
+         *
+         * @param stdoutWindow the window for the output stream
+         * @param stderrWindow the window for the error stream
+         *
+         * @return this builder
+         */
+        public Builder outputWindowSizes(int stdoutWindow, int stderrWindow) {
+            checkArgument(stdoutWindow >= 0, "stdoutWindow must be non-negative");
+            checkArgument(stderrWindow >= 0, "stderrWindow must be non-negative");
+
+            this.stdoutWindow = Optional.of(stdoutWindow);
+            this.stderrWindow = Optional.of(stderrWindow);
+            return this;
+        }
+
+        /**
          * Creates a new {@code CommandContext} using the settings configured by
          * this builder. The builder may be reused to create more contexts after
          * calling this method.
@@ -148,11 +188,15 @@ public final class CommandContext {
     private final CommandEnvironment environment;
     private final Predicate<Integer> exitStatusVerifier;
     private final Optional<UniformPath> workingDir;
+    private final Optional<Integer> stdoutWindow;
+    private final Optional<Integer> stderrWindow;
 
     private CommandContext(Builder builder) {
         this.environment = builder.environment.copy();
         this.exitStatusVerifier = builder.exitStatusVerifier;
         this.workingDir = builder.workingDir;
+        this.stdoutWindow = builder.stdoutWindow;
+        this.stderrWindow = builder.stderrWindow;
     }
 
     /**
@@ -247,5 +291,21 @@ public final class CommandContext {
      */
     public Optional<UniformPath> getWorkingDirectory() {
         return workingDir;
+    }
+
+    /**
+     * Returns this context's output window. If the returned {@code Optional} is
+     * not present, the window size is unlimited.
+     */
+    public Optional<Integer> getStdoutWindowSize() {
+        return stdoutWindow;
+    }
+
+    /**
+     * Returns this context's error window. If the returned {@code Optional} is
+     * not present, the window size is unlimited.
+     */
+    public Optional<Integer> getStderrWindowSize() {
+        return stderrWindow;
     }
 }

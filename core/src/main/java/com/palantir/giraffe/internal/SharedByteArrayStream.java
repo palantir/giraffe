@@ -15,6 +15,7 @@
  */
 package com.palantir.giraffe.internal;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndex;
@@ -54,6 +55,8 @@ final class SharedByteArrayStream implements Closeable {
     private final SharedOutputStream outputStream;
     private final SharedInputStream inputStream;
 
+    private final int windowSize;
+
     // readPosition is the first byte that can be read
     // writePosition is the first empty element
 
@@ -69,12 +72,31 @@ final class SharedByteArrayStream implements Closeable {
     @GuardedBy("lock")
     private final byte[] oneByte = new byte[1];
 
-    // The following fields are @GuardedBy("lock")
-    private byte[] buffer = new byte[DEFAULT_BUFFER_SIZE];
+    @GuardedBy("lock")
+    private byte[] buffer;
+
+    @GuardedBy("lock")
     private int readPosition = 0;
+
+    @GuardedBy("lock")
     private int writePosition = 0;
 
     public SharedByteArrayStream() {
+        this(Integer.MAX_VALUE);
+    }
+
+    public SharedByteArrayStream(int windowSize) {
+        this(windowSize, DEFAULT_BUFFER_SIZE);
+    }
+
+    @VisibleForTesting
+    SharedByteArrayStream(int windowSize, int bufferSize) {
+        checkArgument(windowSize >= 0, "windowSize must be non-negative");
+        checkArgument(bufferSize > 0, "bufferSize must be positive");
+
+        this.windowSize = windowSize;
+        this.buffer = new byte[bufferSize];
+
         outputStream = new SharedOutputStream();
         inputStream = new SharedInputStream();
     }
@@ -153,7 +175,6 @@ final class SharedByteArrayStream implements Closeable {
         @Override
         public void write(int b) throws IOException {
             synchronized (lock) {
-                checkOpen(Mode.WRITE);
                 oneByte[0] = (byte) b;
                 write(oneByte, 0, 1);
             }
@@ -164,14 +185,29 @@ final class SharedByteArrayStream implements Closeable {
             checkArray(b, off, len);
             synchronized (lock) {
                 checkOpen(Mode.WRITE);
-                if (len == 0) {
+                if (len == 0 || windowSize == 0) {
                     return;
                 }
 
-                if (len > writeSize()) {
-                    resize(len);
+                // truncate writes that exceed the window size
+                int length = len;
+                int offset = off;
+                if (len > windowSize) {
+                    offset = off + len - windowSize;
+                    length = windowSize;
                 }
-                copyIn(b, off, len);
+
+                if (length > writeSize()) {
+                    makeSpace(length);
+                }
+                copyIn(b, offset, length);
+
+                // discard data now outside of the window
+                int readSize = readSize();
+                if (readSize > windowSize) {
+                    advanceReadPosition(readSize - windowSize);
+                }
+
                 lock.notifyAll();
             }
         }
@@ -224,7 +260,7 @@ final class SharedByteArrayStream implements Closeable {
             total += copyLen;
         }
 
-        readPosition = (readPosition + total) % buffer.length;
+        advanceReadPosition(total);
         return len;
     }
 
@@ -243,17 +279,33 @@ final class SharedByteArrayStream implements Closeable {
             total += copyLen;
         }
 
-        writePosition = (writePosition + total) % buffer.length;
+        advanceWritePosition(total);
         return len;
     }
 
+
     /**
-     * Resizes the backing buffer until at least {@code spaceNeeded} positions
-     * are available.
+     * Creates space in the buffer, either by resizing or discarding data.
      */
     @GuardedBy("lock")
-    private void resize(int spaceNeeded) throws IOException {
-        int newLength = computeResize(writeSize(), spaceNeeded, buffer.length);
+    private void makeSpace(int needed) throws IOException {
+        assert needed <= windowSize : "need (" + needed + ") > window size (" + windowSize + ")";
+
+        int capacity = buffer.length - 1;
+        if (needed < capacity && capacity > windowSize) {
+            // the new data should fit if we discard data outside the window
+            advanceReadPosition(needed - writeSize());
+        } else {
+            resize(needed);
+        }
+    }
+
+    /**
+     * Resizes the buffer until at least {@code needed} positions are available.
+     */
+    @GuardedBy("lock")
+    private void resize(int needed) throws IOException {
+        int newLength = computeResize(writeSize(), needed, buffer.length);
         if (newLength < 0) {
             throw new IOException("maximum buffer size exceeded");
         }
@@ -264,6 +316,16 @@ final class SharedByteArrayStream implements Closeable {
         buffer = newBuffer;
         readPosition = 0;
         writePosition = oldReadSize;
+    }
+
+    @GuardedBy("lock")
+    private void advanceReadPosition(int n) {
+        readPosition = (readPosition + n) % buffer.length;
+    }
+
+    @GuardedBy("lock")
+    private void advanceWritePosition(int n) {
+        writePosition = (writePosition + n) % buffer.length;
     }
 
     /**
@@ -277,8 +339,8 @@ final class SharedByteArrayStream implements Closeable {
      */
     @VisibleForTesting
     int computeResize(int available, int needed, int length) {
-        assert available < needed : "no resize necessary";
-        assert available < length : "available is larger than length";
+        assert available < needed : "available (" + available + ") >= needed (" + needed + ")";
+        assert available < length : "available (" + available + ") >= length (" + length + ")";
 
         // long to avoid int overflow during computation
         long additional = 0;
@@ -289,17 +351,18 @@ final class SharedByteArrayStream implements Closeable {
 
         // min() constrains to int range
         int newLength = (int) Math.min(length + additional, MAX_BUFFER_SIZE);
-        if (newLength - length + available < needed) {
+        if (newLength - (length - available) - 1 < needed) {
             return -1;
         } else {
             return newLength;
         }
     }
 
-    private static void checkArray(byte[] b, int off, int len) {
-        checkNotNull(b);
-        checkElementIndex(off, b.length);
-        checkPositionIndex(len, b.length - off);
+    @VisibleForTesting
+    int capacity() {
+        synchronized (lock) {
+            return buffer.length - 1;
+        }
     }
 
     SharedOutputStream getOutputStream() {
@@ -332,4 +395,11 @@ final class SharedByteArrayStream implements Closeable {
             lock.notifyAll();
         }
     }
+
+    private static void checkArray(byte[] b, int off, int len) {
+        checkNotNull(b);
+        checkElementIndex(off, b.length);
+        checkPositionIndex(len, b.length - off);
+    }
+
 }

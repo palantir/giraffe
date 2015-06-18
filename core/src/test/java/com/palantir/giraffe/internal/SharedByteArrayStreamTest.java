@@ -15,7 +15,14 @@
  */
 package com.palantir.giraffe.internal;
 
+import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.util.Arrays;
+import java.util.Random;
 
 import org.junit.Before;
 import org.junit.Test;
@@ -27,11 +34,70 @@ import org.junit.Test;
  */
 public class SharedByteArrayStreamTest {
 
+    private Random random = new Random(9166476269L);
     private SharedByteArrayStream stream;
 
     @Before
     public void setup() {
         stream = new SharedByteArrayStream();
+    }
+
+    @Test
+    public void readWithWindow() throws IOException {
+        byte[] writeBuf = new byte[40];
+        random.nextBytes(writeBuf);
+
+        byte[] readBuf = new byte[16];
+
+        try (SharedByteArrayStream sbas = new SharedByteArrayStream(16, 32)) {
+            InputStream is = sbas.getInputStream();
+            OutputStream os = sbas.getOutputStream();
+
+            os.write(writeBuf, 0, 8);
+            is.read(readBuf, 0, 8);
+            assertArrayRange(writeBuf, 0, 8, readBuf);
+
+            os.write(writeBuf, 8, 32);
+            is.read(readBuf, 0, 16);
+            assertArrayRange(writeBuf, 24, 16, readBuf);
+        }
+    }
+
+    @Test
+    public void resizeWithWindow() throws IOException {
+        byte[] writeBuf = new byte[64];
+        random.nextBytes(writeBuf);
+
+        try (SharedByteArrayStream sbas = new SharedByteArrayStream(32, 16)) {
+            OutputStream os = sbas.getOutputStream();
+
+            assertEquals("incorrect capacity", 15, sbas.capacity());
+            os.write(writeBuf, 0, 32);
+            assertEquals("incorrect capacity", 63, sbas.capacity());
+            os.write(writeBuf, 32, 32);
+            assertEquals("incorrect capacity", 63, sbas.capacity());
+        }
+    }
+
+    @Test
+    public void zeroSizeWindow() throws IOException {
+        byte[] writeBuf = new byte[32];
+        random.nextBytes(writeBuf);
+
+        byte[] readBuf = new byte[16];
+
+        try (SharedByteArrayStream sbas = new SharedByteArrayStream(0, 16)) {
+            InputStream is = sbas.getInputStream();
+            OutputStream os = sbas.getOutputStream();
+
+            assertEquals("incorrect capacity", 15, sbas.capacity());
+            os.write(writeBuf);
+            assertEquals("incorrect capacity", 15, sbas.capacity());
+            os.close();
+
+            int r = is.read(readBuf);
+            assertEquals("read did not return EOF", -1, r);
+        }
     }
 
     @Test
@@ -56,5 +122,12 @@ public class SharedByteArrayStreamTest {
     public void computeResizeLengthOverflow() {
         int newLength = stream.computeResize(0, Integer.MAX_VALUE / 2 + 1, Integer.MAX_VALUE / 2);
         assertEquals("length is incorrect", -1, newLength);
+    }
+
+    private static void assertArrayRange(byte[] expected, int off, int len, byte[] actual) {
+        assertArrayEquals(
+                "incorrect data",
+                Arrays.copyOfRange(expected, off, off + len),
+                Arrays.copyOfRange(actual, 0, len));
     }
 }
