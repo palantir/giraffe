@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
+apply plugin: 'maven'
+apply plugin: 'maven-publish'
 
 apply plugin: 'com.github.hierynomus.license'
 
@@ -67,4 +69,27 @@ license {
     ext.year = Calendar.getInstance().get(Calendar.YEAR)
 
     include '**/*.java'
+}
+
+task sourceJar(type: Jar) {
+    from sourceSets.main.allSource
+    classifier 'sources'
+}
+
+publishing {
+    publications {
+        local(MavenPublication) {
+            from components.java
+
+            artifact(sourceJar) {
+                classifier 'sources'
+            }
+        }
+    }
+
+    repositories {
+        maven {
+            url localPublishDir
+        }
+    }
 }

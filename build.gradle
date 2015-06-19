@@ -25,3 +25,28 @@ flexversion {
 
 version flexVersion()
 group = 'com.palantir.giraffe'
+
+ext.localPublishDir = "${buildDir}/localpublish"
+
+task distZip(type: Zip) {
+    dependsOn (['core', 'ssh', 'fs-base', 'test-util'].collect { ":giraffe-${it}:publish" })
+
+    from (localPublishDir) {
+        exclude '**/maven-metadata.xml*'
+    }
+
+    baseName = project.name
+    appendix = 'release'
+    version = project.version
+
+    destinationDir = file("${buildDir}/distributions")
+    doFirst {
+        file(destinationDir).mkdirs()
+    }
+}
+
+task publish(dependsOn: distZip)
+
+task clean(type: Delete) {
+    delete buildDir
+}
