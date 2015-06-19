@@ -8,7 +8,6 @@ Releases
 New Features
 ------------
 
-- Add Kerberos authentication support to SSH systems
 - Add ``Commands.toResult``
 
 API Changes
