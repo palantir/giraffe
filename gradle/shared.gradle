@@ -1,6 +1,7 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
+apply plugin: 'jacoco-coverage'
 
 apply plugin: 'com.github.hierynomus.license'
 

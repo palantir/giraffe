@@ -12,3 +12,7 @@ dependencies {
 systemTest {
     creatorClass = 'com.palantir.giraffe.file.test.creator.CreateTestFiles'
 }
+
+jacocoCoverage {
+    threshold 0.25, project.name
+}
