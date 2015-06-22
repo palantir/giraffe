@@ -51,3 +51,7 @@ test {
     // included in LocalExecutionSystemSuite
     exclude '**/LocalExecutionSystemConfigurationTest*'
 }
+
+jacocoCoverage {
+    threshold 0.5, project.name
+}

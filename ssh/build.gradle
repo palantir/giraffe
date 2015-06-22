@@ -37,3 +37,7 @@ systemTestFiles {
 test {
     include '**/EmbeddedSsh*Suite*'
 }
+
+jacocoCoverage {
+    threshold 0.45, project.name
+}

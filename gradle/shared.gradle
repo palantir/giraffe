@@ -3,6 +3,7 @@ apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
 apply plugin: 'maven'
 apply plugin: 'maven-publish'
+apply plugin: 'jacoco-coverage'
 
 apply plugin: 'com.github.hierynomus.license'
 
