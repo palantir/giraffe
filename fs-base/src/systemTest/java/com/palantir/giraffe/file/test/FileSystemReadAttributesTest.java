@@ -63,8 +63,18 @@ public class FileSystemReadAttributesTest extends FileSystemBaseTest {
         BasicFileAttributeView view = getView(path, BasicFileAttributeView.class);
         assertNotNull("BasicFileAttributeView is not available", view);
 
-        long time = view.readAttributes().size();
-        assertEquals("incorrect size", AttributeTestCreator.SIZE, time);
+        long size = view.readAttributes().size();
+        assertEquals("incorrect size", AttributeTestCreator.SIZE, size);
+    }
+
+    @Test
+    public void basicViewReadsEmptySize() throws IOException {
+        Path path = getTestPath(AttributeTestCreator.F_RO_EMPTY);
+        BasicFileAttributeView view = getView(path, BasicFileAttributeView.class);
+        assertNotNull("BasicFileAttributeView is not available", view);
+
+        long size = view.readAttributes().size();
+        assertEquals("incorrect size", 0, size);
     }
 
     @Test

@@ -78,11 +78,7 @@ final class SshPosixFileAttributes implements AnnotatedPosixFileAttributes {
 
     @Override
     public long size() {
-        if (attrs.getSize() == 0L) {
-            return -1;
-        } else {
-            return attrs.getSize();
-        }
+        return attrs.getSize();
     }
 
     @Override

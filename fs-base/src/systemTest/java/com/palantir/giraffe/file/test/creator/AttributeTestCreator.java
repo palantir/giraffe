@@ -36,6 +36,7 @@ public class AttributeTestCreator implements Creator {
 
     public static final String F_RO_MODIFIED_TIME = "ro_modified_time.txt";
     public static final String F_RO_SIZE = "ro_size.txt";
+    public static final String F_RO_EMPTY = "ro_empty.txt";
     public static final String F_RO_PERMISSIONS = "ro_permissions.sh";
 
     public static final String F_RW_MODIFIED_TIME = "rw_modified_time.txt";
@@ -59,6 +60,7 @@ public class AttributeTestCreator implements Creator {
         script.setModifiedTime(F_RO_MODIFIED_TIME, new Date(MODIFIED_TIME.toMillis()));
 
         script.printf("dd if=/dev/zero bs=%d count=1 2>/dev/null > %s%n", SIZE, F_RO_SIZE);
+        script.createFile(F_RO_EMPTY);
 
         script.createFile(F_RO_PERMISSIONS, 0755);
 
