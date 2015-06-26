@@ -106,8 +106,8 @@ final class ProcessStreamHandler {
         Uninterruptibles.awaitUninterruptibly(copierLatch);
 
         // close output after we know all data is copied
-        stdout.close();
-        stderr.close();
+        stdout.getOutputStream().close();
+        stderr.getOutputStream().close();
     }
 
     public CommandResult toResult(int exitStatus, Charset charset) {

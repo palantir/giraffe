@@ -62,18 +62,17 @@ public class SharedByteArrayStreamTest {
 
         byte[] readBuf = new byte[16];
 
-        try (SharedByteArrayStream sbas = new SharedByteArrayStream(16, 32)) {
-            InputStream is = sbas.getInputStream();
-            OutputStream os = sbas.getOutputStream();
+        SharedByteArrayStream sbas = new SharedByteArrayStream(16, 32);
+        InputStream is = sbas.getInputStream();
+        OutputStream os = sbas.getOutputStream();
 
-            os.write(writeBuf, 0, 8);
-            is.read(readBuf, 0, 8);
-            assertArrayRange(writeBuf, 0, 8, readBuf);
+        os.write(writeBuf, 0, 8);
+        is.read(readBuf, 0, 8);
+        assertArrayRange(writeBuf, 0, 8, readBuf);
 
-            os.write(writeBuf, 8, 32);
-            is.read(readBuf, 0, 16);
-            assertArrayRange(writeBuf, 24, 16, readBuf);
-        }
+        os.write(writeBuf, 8, 32);
+        is.read(readBuf, 0, 16);
+        assertArrayRange(writeBuf, 24, 16, readBuf);
     }
 
     @Test
@@ -81,15 +80,14 @@ public class SharedByteArrayStreamTest {
         byte[] writeBuf = new byte[64];
         random.nextBytes(writeBuf);
 
-        try (SharedByteArrayStream sbas = new SharedByteArrayStream(32, 16)) {
-            OutputStream os = sbas.getOutputStream();
+        SharedByteArrayStream sbas = new SharedByteArrayStream(32, 16);
+        OutputStream os = sbas.getOutputStream();
 
-            assertEquals("incorrect capacity", 15, sbas.capacity());
-            os.write(writeBuf, 0, 32);
-            assertEquals("incorrect capacity", 63, sbas.capacity());
-            os.write(writeBuf, 32, 32);
-            assertEquals("incorrect capacity", 63, sbas.capacity());
-        }
+        assertEquals("incorrect capacity", 15, sbas.capacity());
+        os.write(writeBuf, 0, 32);
+        assertEquals("incorrect capacity", 63, sbas.capacity());
+        os.write(writeBuf, 32, 32);
+        assertEquals("incorrect capacity", 63, sbas.capacity());
     }
 
     @Test
@@ -99,18 +97,17 @@ public class SharedByteArrayStreamTest {
 
         byte[] readBuf = new byte[16];
 
-        try (SharedByteArrayStream sbas = new SharedByteArrayStream(0, 16)) {
-            InputStream is = sbas.getInputStream();
-            OutputStream os = sbas.getOutputStream();
+        SharedByteArrayStream sbas = new SharedByteArrayStream(0, 16);
+        InputStream is = sbas.getInputStream();
+        OutputStream os = sbas.getOutputStream();
 
-            assertEquals("incorrect capacity", 15, sbas.capacity());
-            os.write(writeBuf);
-            assertEquals("incorrect capacity", 15, sbas.capacity());
-            os.close();
+        assertEquals("incorrect capacity", 15, sbas.capacity());
+        os.write(writeBuf);
+        assertEquals("incorrect capacity", 15, sbas.capacity());
+        os.close();
 
-            int r = is.read(readBuf);
-            assertEquals("read did not return EOF", -1, r);
-        }
+        int r = is.read(readBuf);
+        assertEquals("read did not return EOF", -1, r);
     }
 
     @Test

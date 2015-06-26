@@ -20,7 +20,6 @@ import static com.google.common.base.Preconditions.checkElementIndex;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Preconditions.checkPositionIndex;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InterruptedIOException;
@@ -40,7 +39,7 @@ import com.google.common.annotations.VisibleForTesting;
  * @author bkeyes
  */
 @ThreadSafe
-final class SharedByteArrayStream implements Closeable {
+final class SharedByteArrayStream {
 
     // from JDK ArrayList implementation
     private static final int MAX_BUFFER_SIZE = Integer.MAX_VALUE - 8;
@@ -457,17 +456,6 @@ final class SharedByteArrayStream implements Closeable {
             byte[] data = new byte[bufferedSize];
             copyFromBuffer(data, 0, bufferedSize);
             return data;
-        }
-    }
-
-    /**
-     * Should not be closed until the remote process has exited.
-     */
-    @Override
-    public void close() {
-        synchronized (lock) {
-            modes.clear();
-            lock.notifyAll();
         }
     }
 
