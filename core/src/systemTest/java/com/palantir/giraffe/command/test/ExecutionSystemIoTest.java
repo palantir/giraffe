@@ -17,9 +17,13 @@ package com.palantir.giraffe.command.test;
 
 import static org.junit.Assert.assertEquals;
 
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.io.Writer;
 import java.nio.charset.StandardCharsets;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
 
 import org.junit.Test;
@@ -50,6 +54,33 @@ public class ExecutionSystemIoTest extends ExecutionSystemBaseTest {
         Command cmd = getCommand(ScriptExtractionCreator.HELLO_OUTPUT);
         CommandResult result = Commands.execute(cmd, 10, TimeUnit.SECONDS);
         assertEquals("incorrect output", "Hello World", result.getStdOut());
+    }
+
+    @Test
+    public void readsOutputAsync() throws Exception {
+        Command cmd = getCommand(ScriptExtractionCreator.HELLO_OUTPUT);
+        CommandFuture future = Commands.executeAsync(cmd);
+
+        final InputStream stdout = future.getStdOut();
+        String data = execute(new Callable<String>() {
+            @Override
+            public String call() throws Exception {
+                byte[] buf = new byte[256];
+                StringBuilder sb = new StringBuilder();
+                while (true) {
+                    int r = stdout.read(buf);
+                    if (r < 0) {
+                        break;
+                    }
+                    sb.append(new String(buf, 0, r, StandardCharsets.UTF_8));
+                }
+                return sb.toString();
+            }
+        }, 10, TimeUnit.SECONDS);
+        assertEquals("incorrect output", "Hello World", data);
+
+        CommandResult result = Commands.waitFor(future, 10, TimeUnit.SECONDS);
+        assertEquals("incorrect result", "Hello World", result.getStdOut());
     }
 
     @Test
@@ -124,4 +155,12 @@ public class ExecutionSystemIoTest extends ExecutionSystemBaseTest {
         assertEquals("incorrect output", data, result.getStdOut());
     }
 
+    private <T> T execute(Callable<T> action, long timeout, TimeUnit unit) throws Exception {
+        ExecutorService executor = Executors.newSingleThreadExecutor();
+        try {
+            return executor.submit(action).get(timeout, unit);
+        } finally {
+            executor.shutdown();
+        }
+    }
 }

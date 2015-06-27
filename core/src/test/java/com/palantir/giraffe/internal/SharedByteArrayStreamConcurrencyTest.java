@@ -80,33 +80,32 @@ public class SharedByteArrayStreamConcurrencyTest {
     @Test
     public void concurrentReadAndWrite() throws InterruptedException {
         for (int i = 0; i < ITERATIONS; i++) {
-            try (SharedByteArrayStream stream = new SharedByteArrayStream()) {
-                SharedInputStream is = stream.getInputStream();
-                SharedOutputStream os = stream.getOutputStream();
+            SharedByteArrayStream stream = new SharedByteArrayStream();
+            SharedInputStream is = stream.getInputStream();
+            SharedOutputStream os = stream.getOutputStream();
 
-                Future<byte[]> writeFuture = executor.submit(new WriteAction(os));
-                Future<byte[]> readFuture = executor.submit(new ReadAction(is));
+            Future<byte[]> writeFuture = executor.submit(new WriteAction(os));
+            Future<byte[]> readFuture = executor.submit(new ReadAction(is));
 
-                byte[] expected = null;
-                try {
-                    expected = writeFuture.get(30, TimeUnit.SECONDS);
-                } catch (ExecutionException e) {
-                    throw new AssertionError("unexpected exception", e.getCause());
-                } catch (TimeoutException e) {
-                    fail("timeout waiting for write action");
-                }
-
-                byte[] actual = null;
-                try {
-                    actual = readFuture.get(10, TimeUnit.SECONDS);
-                } catch (ExecutionException e) {
-                    throw new AssertionError("unexpected exception", e.getCause());
-                } catch (TimeoutException e) {
-                    fail("timeout waiting for read action");
-                }
-
-                assertArrayEquals("incorrect data", expected, actual);
+            byte[] expected = null;
+            try {
+                expected = writeFuture.get(30, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                throw new AssertionError("unexpected exception", e.getCause());
+            } catch (TimeoutException e) {
+                fail("timeout waiting for write action");
             }
+
+            byte[] actual = null;
+            try {
+                actual = readFuture.get(10, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                throw new AssertionError("unexpected exception", e.getCause());
+            } catch (TimeoutException e) {
+                fail("timeout waiting for read action");
+            }
+
+            assertArrayEquals("incorrect data", expected, actual);
         }
     }
 
