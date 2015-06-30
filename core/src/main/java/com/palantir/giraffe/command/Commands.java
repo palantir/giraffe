@@ -334,6 +334,15 @@ public final class Commands {
         return new CommandResult(exitStatus, stdOut, stdErr);
     }
 
+    /**
+     * Determines if the given command is associated with the default (local) execution
+     * system.
+     */
+    public static boolean isLocal(Command command) {
+        checkNotNull(command, "command must be non-null");
+        return command.getExecutionSystem().equals(ExecutionSystems.getDefault());
+    }
+
     private static String readAvailable(InputStream is, Charset cs) throws IOException {
         CharBuffer buffer = CharBuffer.allocate(COPY_BUFFER_SIZE);
         StringBuilder data = new StringBuilder();
