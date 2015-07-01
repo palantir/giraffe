@@ -16,6 +16,7 @@
 package com.palantir.giraffe.file;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -24,6 +25,7 @@ import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -564,6 +566,15 @@ public final class MoreFiles {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directoryPath)) {
             return Lists.newArrayList(directoryStream);
         }
+    }
+
+    /**
+     * Determines if the given path is associated with the default (local) file
+     * system.
+     */
+    public static boolean isLocal(Path path) {
+        checkNotNull(path, "path must be non-null");
+        return path.getFileSystem().equals(FileSystems.getDefault());
     }
 
     private MoreFiles() {
