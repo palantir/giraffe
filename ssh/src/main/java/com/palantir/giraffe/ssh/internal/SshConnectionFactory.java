@@ -13,12 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 
 import com.palantir.giraffe.ssh.AbstractSshCredential;
 import com.palantir.giraffe.ssh.SshAuthenticator;
+import com.palantir.giraffe.ssh.SshHost;
 
 import net.schmizz.sshj.Config;
 import net.schmizz.sshj.SSHClient;
@@ -26,12 +27,7 @@ import net.schmizz.sshj.common.IOUtils;
 import net.schmizz.sshj.transport.verification.PromiscuousVerifier;
 import net.schmizz.sshj.userauth.keyprovider.KeyProvider;
 
-/**
- * Creates SSH connections from an environment map.
- *
- * @author bkeyes
- */
-public final class SshConnectionFactory {
+final class SshConnectionFactory {
 
     private final Config config;
 
@@ -39,7 +35,7 @@ public final class SshConnectionFactory {
         this.config = sshjConfiguration;
     }
 
-    public SSHClient newAuthedConnection(BaseSshHostAccessor<?> host) throws IOException {
+    public SSHClient newAuthedConnection(SshHost<?> host) throws IOException {
         SSHClient sshClient = new SSHClient(config);
         sshClient.getTransport().addHostKeyVerifier(new PromiscuousVerifier());
 

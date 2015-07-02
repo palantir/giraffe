@@ -32,7 +32,7 @@ import com.palantir.giraffe.host.Host;
  *
  * @author bkeyes
  */
-public class HostLogger {
+class HostLogger {
 
     private static final String MDC_HOST_KEY = "giraffe-ssh-host";
 

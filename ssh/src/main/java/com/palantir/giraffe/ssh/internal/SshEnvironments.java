@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -24,6 +24,8 @@ import java.util.Map;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.palantir.giraffe.ssh.SshHost;
 
 /**
  * Utilities for working with environment maps when creating SSH file and
@@ -39,7 +41,7 @@ public class SshEnvironments {
     private static final String CLIENT_KEY = "ssh-client";
     private static final String LOGGER_KEY = "logger";
 
-    public static Map<String, ?> makeEnv(BaseSshHostAccessor<?> host) {
+    public static Map<String, ?> makeEnv(SshHost<?> host) {
         Map<String, Object> env = new HashMap<>();
         env.put(HOST_KEY, checkNotNull(host));
         return env;
@@ -59,7 +61,7 @@ public class SshEnvironments {
         if (env.containsKey(CLIENT_KEY)) {
             return get(CLIENT_KEY, SharedSshClient.class, env);
         } else {
-            BaseSshHostAccessor<?> host = get(HOST_KEY, BaseSshHostAccessor.class, env);
+            SshHost<?> host = get(HOST_KEY, SshHost.class, env);
             return new SharedSshClient(conFactory.newAuthedConnection(host));
         }
     }

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -42,7 +42,7 @@ final class SshCommandFuture extends CommandFutureTask {
 
     private final SSHClient client;
 
-    SshCommandFuture(BaseSshCommand<?> command,
+    SshCommandFuture(SshCommand command,
                      CommandContext context,
                      SSHClient client,
                      Executor executor) {
@@ -52,7 +52,7 @@ final class SshCommandFuture extends CommandFutureTask {
 
     @Override
     protected HandlableProcess startProcess() throws IOException {
-        Logger logger = ((BaseSshCommand<?>) command).getExecutionSystem().logger();
+        Logger logger = ((SshCommand) command).getExecutionSystem().logger();
 
         String fullCommand = buildCommandWithContext(command, context);
         logger.debug("executing command: {}", fullCommand);

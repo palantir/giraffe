@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 import java.nio.file.NoSuchFileException;
@@ -28,10 +28,10 @@ import net.schmizz.sshj.sftp.SFTPException;
 
 final class SshPosixFileAttributeView extends AbstractPosixFileAttributeView {
 
-    private final BaseSshPath<?> path;
+    private final SshPath path;
     private final boolean followLinks;
 
-    SshPosixFileAttributeView(BaseSshPath<?> path, boolean followLinks) {
+    SshPosixFileAttributeView(SshPath path, boolean followLinks) {
         this.path = path;
         this.followLinks = followLinks;
     }

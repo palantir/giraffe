@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -24,8 +24,8 @@ import com.palantir.giraffe.file.base.CopyFlags;
 
 final class SshSameHostFileHelper {
 
-    public static void copyFile(BaseSshPath<?> source, BaseSshPath<?> target,
-            CopyFlags flags) throws IOException {
+    public static void copyFile(SshPath source, SshPath target, CopyFlags flags)
+            throws IOException {
         List<Object> args = new ArrayList<>();
         if (flags.replaceExisting) {
             args.add("-f");
@@ -54,8 +54,8 @@ final class SshSameHostFileHelper {
 
     // TODO(bkeyes): technically, this should probably fail if it moves a path
     // between partitions on the remote host. Is this actually a problem?
-    public static void movePath(BaseSshPath<?> source, BaseSshPath<?> target,
-            CopyFlags flags) throws IOException {
+    public static void movePath(SshPath source, SshPath target, CopyFlags flags)
+            throws IOException {
         List<Object> args = new ArrayList<>();
         if (flags.replaceExisting) {
             args.add("-f");
@@ -73,7 +73,7 @@ final class SshSameHostFileHelper {
         }
     }
 
-    public static void deleteRecursive(BaseSshPath<?> target)
+    public static void deleteRecursive(SshPath target)
             throws IOException {
         CommandResult result = target.getFileSystem().execute("rm", "-rf", target);
         if (result.getExitStatus() != 0) {
@@ -81,7 +81,7 @@ final class SshSameHostFileHelper {
         }
     }
 
-    public static void copyRecursive(BaseSshPath<?> source, BaseSshPath<?> target)
+    public static void copyRecursive(SshPath source, SshPath target)
             throws IOException {
         CommandResult result = target.getFileSystem().execute("cp", "-r", source, target);
         if (result.getExitStatus() != 0) {
@@ -89,7 +89,7 @@ final class SshSameHostFileHelper {
         }
     }
 
-    public static void changePermissionsRecursive(BaseSshPath<?> target, String mode)
+    public static void changePermissionsRecursive(SshPath target, String mode)
             throws IOException {
         CommandResult result = target.getFileSystem().execute("chmod", "-R", mode, target);
         if (result.getExitStatus() != 0) {
