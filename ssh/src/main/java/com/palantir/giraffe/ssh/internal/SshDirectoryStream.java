@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -37,10 +37,10 @@ final class SshDirectoryStream extends AbstractFilteredDirectoryStream<Path> {
             }
         };
 
-    private final BaseSshPath<?> dir;
+    private final SshPath dir;
     private final Iterator<RemoteResourceInfo> entryIterator;
 
-    SshDirectoryStream(BaseSshPath<?> dir,
+    SshDirectoryStream(SshPath dir,
                        Iterable<RemoteResourceInfo> entries,
                        Filter<? super Path> filter) {
         super(filter);

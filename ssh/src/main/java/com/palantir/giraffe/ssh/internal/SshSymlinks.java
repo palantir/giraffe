@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 import java.nio.file.attribute.FileAttribute;
@@ -28,7 +28,7 @@ import net.schmizz.sshj.sftp.SFTPClient;
 
 final class SshSymlinks {
 
-    public static void create(BaseSshPath<?> link, BaseSshPath<?> target, FileAttribute<?>[] attrs)
+    public static void create(SshPath link, SshPath target, FileAttribute<?>[] attrs)
             throws IOException {
         try (SFTPClient sftp = link.getFileSystem().openSftpClient()) {
             // This is a workaround because SshJ has the arguments implemented backwards
@@ -44,7 +44,7 @@ final class SshSymlinks {
         }
     }
 
-    public static String read(BaseSshPath<?> symlink) throws IOException {
+    public static String read(SshPath symlink) throws IOException {
         try (SFTPClient sftp = symlink.getFileSystem().openSftpClient()) {
             return sftp.readlink(symlink.toString());
         }

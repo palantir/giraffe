@@ -17,11 +17,11 @@ package com.palantir.giraffe.ssh.internal;
 
 import java.util.Objects;
 
-import com.palantir.giraffe.ssh.internal.base.BaseSshCommand;
+import com.palantir.giraffe.internal.AbstractCommand;
 
-final class SshCommand extends BaseSshCommand<SshCommand> {
+final class SshCommand extends AbstractCommand {
 
-    static final class Builder extends BaseSshCommand.Builder<SshCommand> {
+    static final class Builder extends AbstractCommand.Builder {
         private final SshExecutionSystem es;
 
         protected Builder(String command, SshExecutionSystem es) {
@@ -35,8 +35,11 @@ final class SshCommand extends BaseSshCommand<SshCommand> {
         }
     }
 
+    private final SshExecutionSystem es;
+
     private SshCommand(SshExecutionSystem es, Builder builder) {
-        super(es, builder);
+        super(builder);
+        this.es = es;
     }
 
     @Override
@@ -56,5 +59,10 @@ final class SshCommand extends BaseSshCommand<SshCommand> {
                     && getExecutable().equals(that.getExecutable())
                     && getArguments().equals(that.getArguments());
         }
+    }
+
+    @Override
+    public SshExecutionSystem getExecutionSystem() {
+        return es;
     }
 }

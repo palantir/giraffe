@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -37,8 +37,8 @@ import net.schmizz.sshj.sftp.SFTPClient;
 
 final class SshSeekableByteChannel extends AbstractSeekableByteChannel {
 
-    public static SshSeekableByteChannel open(BaseSshPath<?> path,
-            Set<? extends OpenOption> options, FileAttribute<?>... attrs) throws IOException {
+    public static SshSeekableByteChannel open(SshPath path, Set<? extends OpenOption> options,
+            FileAttribute<?>... attrs) throws IOException {
         OpenFlags flags = OpenFlags.validateFromOptions(options);
         SFTPClient sftp = path.getFileSystem().openSftpClient();
         try {
@@ -61,7 +61,7 @@ final class SshSeekableByteChannel extends AbstractSeekableByteChannel {
         return FileAttributes.EMPTY;
     }
 
-    private static RemoteFile open(SFTPClient sftp, BaseSshPath<?> path, OpenFlags flags,
+    private static RemoteFile open(SFTPClient sftp, SshPath path, OpenFlags flags,
             FileAttributes attrs) throws IOException {
         String pathString = path.toString();
         boolean exists = sftp.statExistence(pathString) != null;
@@ -98,12 +98,12 @@ final class SshSeekableByteChannel extends AbstractSeekableByteChannel {
     }
 
     private final RemoteFile file;
-    private final BaseSshPath<?> path;
+    private final SshPath path;
     private final OpenFlags flags;
     private final SFTPClient sftp;
 
     private SshSeekableByteChannel(RemoteFile file,
-                                   BaseSshPath<?> path,
+                                   SshPath path,
                                    OpenFlags flags,
                                    SFTPClient sftp) {
         this.file = file;

@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
@@ -24,9 +24,9 @@ import com.palantir.giraffe.file.base.attribute.PosixFileAttributeViewFactory;
 
 final class SshFileAttributeViewFactory extends PosixFileAttributeViewFactory {
 
-    private final BaseSshFileSystemProvider<?> provider;
+    private final SshFileSystemProvider provider;
 
-    public SshFileAttributeViewFactory(BaseSshFileSystemProvider<?> provider) {
+    public SshFileAttributeViewFactory(SshFileSystemProvider provider) {
         this.provider = provider;
     }
 

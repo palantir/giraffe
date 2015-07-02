@@ -15,11 +15,21 @@
  */
 package com.palantir.giraffe.ssh.internal;
 
-import java.net.URI;
+import static com.google.common.base.Preconditions.checkNotNull;
 
-import com.palantir.giraffe.ssh.internal.base.BaseSshExecutionSystemProvider;
-import com.palantir.giraffe.ssh.internal.base.SshConnectionFactory;
-import com.palantir.giraffe.ssh.internal.base.SshSystemContext;
+import java.io.IOException;
+import java.net.URI;
+import java.nio.file.ProviderMismatchException;
+import java.util.Map;
+
+import org.slf4j.Logger;
+
+import com.palantir.giraffe.command.Command;
+import com.palantir.giraffe.command.CommandContext;
+import com.palantir.giraffe.command.CommandFuture;
+import com.palantir.giraffe.command.ExecutionSystem;
+import com.palantir.giraffe.command.ExecutionSystemNotFoundException;
+import com.palantir.giraffe.command.spi.ExecutionSystemProvider;
 
 import net.schmizz.sshj.DefaultConfig;
 
@@ -28,18 +38,12 @@ import net.schmizz.sshj.DefaultConfig;
  *
  * @author bkeyes
  */
-public final class SshExecutionSystemProvider extends BaseSshExecutionSystemProvider<SshCommand> {
+public final class SshExecutionSystemProvider extends ExecutionSystemProvider {
 
     private final SshConnectionFactory connectionFactory;
 
     public SshExecutionSystemProvider() {
-        super(SshCommand.class);
         connectionFactory = new SshConnectionFactory(new DefaultConfig());
-    }
-
-    @Override
-    public SshExecutionSystem newExecutionSystem(SshSystemContext context) {
-        return new SshExecutionSystem(this, context);
     }
 
     @Override
@@ -48,12 +52,32 @@ public final class SshExecutionSystemProvider extends BaseSshExecutionSystemProv
     }
 
     @Override
-    protected void checkUri(URI uri) {
+    public ExecutionSystem newExecutionSystem(URI uri, Map<String, ?> env) throws IOException {
         SshUris.checkUri(uri);
+
+        Logger logger = SshEnvironments.getLogger(env);
+        SharedSshClient client = SshEnvironments.getClient(env, connectionFactory);
+        return new SshExecutionSystem(this, new SshSystemContext(uri, client, logger));
     }
 
     @Override
-    protected SshConnectionFactory getConnectionFactory() {
-        return connectionFactory;
+    public ExecutionSystem getExecutionSystem(URI uri) {
+        SshUris.checkUri(uri);
+        throw new ExecutionSystemNotFoundException(uri.toString());
+    }
+
+    @Override
+    public CommandFuture execute(Command command, CommandContext context) {
+        SshCommand cmd = checkCommand(command);
+        return cmd.getExecutionSystem().execute(cmd, context);
+    }
+
+    private SshCommand checkCommand(Command c) {
+        if (checkNotNull(c, "command must be non-null") instanceof SshCommand) {
+            return (SshCommand) c;
+        } else {
+            String type = c.getClass().getName();
+            throw new ProviderMismatchException("incompatible with command of type " + type);
+        }
     }
 }

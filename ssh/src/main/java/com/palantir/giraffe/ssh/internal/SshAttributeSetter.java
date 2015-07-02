@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 import java.nio.file.attribute.FileTime;
@@ -33,14 +33,14 @@ import net.schmizz.sshj.sftp.SFTPClient;
 
 final class SshAttributeSetter implements PosixFileAttributeSetter {
 
-    private final BaseSshPath<?> path;
+    private final SshPath path;
     private final FileAttributes.Builder attrs = new FileAttributes.Builder();
     private FileTime atime = null;
     private FileTime mtime = null;
     private UserIdPrincipal owner = null;
     private GroupIdPrincipal group = null;
 
-    public SshAttributeSetter(BaseSshPath<?> path) {
+    public SshAttributeSetter(SshPath path) {
         this.path = path;
     }
 

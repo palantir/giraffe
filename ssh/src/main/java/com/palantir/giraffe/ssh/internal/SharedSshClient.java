@@ -13,7 +13,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal.base;
+package com.palantir.giraffe.ssh.internal;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -28,7 +28,7 @@ import net.schmizz.sshj.SSHClient;
  *
  * @author bkeyes
  */
-public class SharedSshClient implements Closeable {
+class SharedSshClient implements Closeable {
 
     private final SSHClient client;
 
