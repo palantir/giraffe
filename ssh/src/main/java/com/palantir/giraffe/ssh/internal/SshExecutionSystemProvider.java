@@ -48,12 +48,12 @@ public final class SshExecutionSystemProvider extends ExecutionSystemProvider {
 
     @Override
     public String getScheme() {
-        return SshUris.getUriScheme();
+        return SshUris.getExecScheme();
     }
 
     @Override
     public ExecutionSystem newExecutionSystem(URI uri, Map<String, ?> env) throws IOException {
-        SshUris.checkUri(uri);
+        SshUris.checkExecUri(uri);
 
         Logger logger = SshEnvironments.getLogger(env);
         SharedSshClient client = SshEnvironments.getClient(env, connectionFactory);
@@ -62,7 +62,7 @@ public final class SshExecutionSystemProvider extends ExecutionSystemProvider {
 
     @Override
     public ExecutionSystem getExecutionSystem(URI uri) {
-        SshUris.checkUri(uri);
+        SshUris.checkExecUri(uri);
         throw new ExecutionSystemNotFoundException(uri.toString());
     }
 

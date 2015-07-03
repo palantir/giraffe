@@ -112,8 +112,9 @@ final class SshFileSystem extends BaseFileSystem<SshPath> implements ExecutionSy
     @Override
     public ExecutionSystem asExecutionSystem() throws IOException {
         if (client.addUser()) {
+            URI execUri = SshUris.replaceScheme(uri, SshUris.getExecScheme());
             Map<String, ?> env = SshEnvironments.makeEnv(client);
-            return ExecutionSystems.newExecutionSystem(uri, env, getClass().getClassLoader());
+            return ExecutionSystems.newExecutionSystem(execUri, env, getClass().getClassLoader());
         } else {
             throw new ClosedFileSystemException();
         }

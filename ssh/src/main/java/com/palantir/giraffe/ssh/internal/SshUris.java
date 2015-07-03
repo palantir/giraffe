@@ -31,16 +31,30 @@ import com.palantir.giraffe.ssh.AbstractSshCredential;
  */
 public class SshUris {
 
-    private static final String URI_SCHEME = "ssh";
+    private static final String FILE_SCHEME = "file+ssh";
+    private static final String EXEC_SCHEME = "exec+ssh";
 
-    public static String getUriScheme() {
-        return URI_SCHEME;
+    public static String getFileScheme() {
+        return FILE_SCHEME;
     }
 
-    public static void checkUri(URI uri) {
-        checkNotNull(uri, "uri must be non-null");
-        checkArgument(URI_SCHEME.equals(uri.getScheme()), "scheme is not %s", URI_SCHEME);
+    public static String getExecScheme() {
+        return EXEC_SCHEME;
+    }
 
+    public static void checkFileUri(URI uri) {
+        checkNotNull(uri, "uri must be non-null");
+        checkArgument(FILE_SCHEME.equals(uri.getScheme()), "scheme is not %s", FILE_SCHEME);
+        checkCommonUriParts(uri);
+    }
+
+    public static void checkExecUri(URI uri) {
+        checkNotNull(uri, "uri must be non-null");
+        checkArgument(EXEC_SCHEME.equals(uri.getScheme()), "scheme is not %s", EXEC_SCHEME);
+        checkCommonUriParts(uri);
+    }
+
+    private static void checkCommonUriParts(URI uri) {
         // authority == user@host:port
         checkArgument(uri.getAuthority() != null, "missing authority component");
         checkArgument(uri.getUserInfo() != null, "missing user info component");
@@ -53,11 +67,25 @@ public class SshUris {
         checkArgument(uri.getFragment() == null, "fragment component present");
     }
 
-    public static URI getUri(Host host, int port, AbstractSshCredential credential) {
+    public static URI getFileUri(Host host, int port, AbstractSshCredential cred) {
+        return getUri(FILE_SCHEME, host, port, cred);
+    }
+
+    public static URI getExecUri(Host host, int port, AbstractSshCredential cred) {
+        return getUri(EXEC_SCHEME, host, port, cred);
+    }
+
+    private static URI getUri(String scheme, Host host, int port, AbstractSshCredential cred) {
         try {
-            return new URI(URI_SCHEME,
-                    credential.getUsername(), host.getHostname(), port,
-                    "/", null, null);
+            return new URI(scheme, cred.getUsername(), host.getHostname(), port, "/", null, null);
+        } catch (URISyntaxException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
+    public static URI replaceScheme(URI uri, String newScheme) {
+        try {
+            return new URI(newScheme, uri.getSchemeSpecificPart(), uri.getFragment());
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException(e);
         }

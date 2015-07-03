@@ -84,8 +84,9 @@ final class SshExecutionSystem extends ExecutionSystem implements FileSystemConv
     @Override
     public FileSystem asFileSystem() throws IOException {
         if (client.addUser()) {
+            URI fileUri = SshUris.replaceScheme(uri, SshUris.getFileScheme());
             Map<String, ?> env = SshEnvironments.makeEnv(client);
-            return FileSystems.newFileSystem(uri, env, getClass().getClassLoader());
+            return FileSystems.newFileSystem(fileUri, env, getClass().getClassLoader());
         } else {
             throw new ClosedExecutionSystemException();
         }

@@ -67,12 +67,12 @@ public final class SshFileSystemProvider extends BaseFileSystemProvider<SshPath>
 
     @Override
     public String getScheme() {
-        return SshUris.getUriScheme();
+        return SshUris.getFileScheme();
     }
 
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
-        SshUris.checkUri(uri);
+        SshUris.checkFileUri(uri);
 
         Logger logger = SshEnvironments.getLogger(env);
         SharedSshClient client = SshEnvironments.getClient(env, connectionFactory);
@@ -81,7 +81,7 @@ public final class SshFileSystemProvider extends BaseFileSystemProvider<SshPath>
 
     @Override
     public FileSystem getFileSystem(URI uri) {
-        SshUris.checkUri(uri);
+        SshUris.checkFileUri(uri);
         throw new FileSystemNotFoundException(uri.toString());
     }
 

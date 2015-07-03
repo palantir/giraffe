@@ -103,8 +103,12 @@ public final class SshHost<C extends AbstractSshCredential> implements RemoteHos
         this.credential = credential;
     }
 
-    public URI getSystemUri() {
-        return SshUris.getUri(getHost(), getPort(), getCredential());
+    public URI getFileSystemUri() {
+        return SshUris.getFileUri(getHost(), getPort(), getCredential());
+    }
+
+    public URI getExecutionSystemUri() {
+        return SshUris.getExecUri(getHost(), getPort(), getCredential());
     }
 
     @Override
@@ -128,7 +132,7 @@ public final class SshHost<C extends AbstractSshCredential> implements RemoteHos
     @Override
     public HostControlSystem openHostControlSystem() throws IOException {
         FileSystem fs = FileSystems.newFileSystem(
-                getSystemUri(),
+                getFileSystemUri(),
                 getSystemEnvironment(),
                 getClass().getClassLoader());
 
