@@ -17,14 +17,13 @@ package com.palantir.giraffe.command;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.ProviderNotFoundException;
 import java.util.List;
 import java.util.Map;
-import java.util.ServiceLoader;
 
 import com.google.common.util.concurrent.MoreExecutors;
 import com.palantir.giraffe.command.spi.ExecutionSystemProvider;
 import com.palantir.giraffe.internal.LocalExecutionSystemProvider;
+import com.palantir.giraffe.internal.SchemeProviderFinder;
 
 /**
  * Factory methods for execution systems.
@@ -73,8 +72,10 @@ public final class ExecutionSystems {
      *         with the given URI
      */
     public static ExecutionSystem getExecutionSystem(URI uri) {
-        String scheme = uri.getScheme();
-        return find(scheme, ExecutionSystemProvider.installedProviders()).getExecutionSystem(uri);
+        List<ExecutionSystemProvider> providers = ExecutionSystemProvider.installedProviders();
+        return new SchemeProviderFinder<>(ExecutionSystemProvider.class, providers)
+                .findOrThrow(uri.getScheme())
+                .getExecutionSystem(uri);
     }
 
     /**
@@ -120,17 +121,11 @@ public final class ExecutionSystems {
      */
     public static ExecutionSystem newExecutionSystem(URI uri, Map<String, ?> env,
             ClassLoader loader) throws IOException {
-        String scheme = uri.getScheme();
-        try {
-            List<ExecutionSystemProvider> providers = ExecutionSystemProvider.installedProviders();
-            return find(scheme, providers).newExecutionSystem(uri, env);
-        } catch (ProviderNotFoundException e) {
-            if (loader != null) {
-                return loadAndFind(scheme, loader).newExecutionSystem(uri, env);
-            } else {
-                throw e;
-            }
-        }
+        List<ExecutionSystemProvider> providers = ExecutionSystemProvider.installedProviders();
+        return new SchemeProviderFinder<>(ExecutionSystemProvider.class, providers)
+                .setFallbackLoader(loader)
+                .findOrThrow(uri.getScheme())
+                .newExecutionSystem(uri, env);
     }
 
     /**
@@ -162,21 +157,6 @@ public final class ExecutionSystems {
     public static void closeAfterCompletion(ExecutionSystem es,
             CommandExitLatch listener) {
         listener.startMonitoring(es);
-    }
-
-    private static ExecutionSystemProvider find(String scheme,
-            Iterable<ExecutionSystemProvider> providers) {
-        for (ExecutionSystemProvider provider : providers) {
-            if (scheme.equalsIgnoreCase(provider.getScheme())) {
-                return provider;
-            }
-        }
-        // TODO(bkeyes): this is a file system specific exception
-        throw new ProviderNotFoundException("Provider \"" + scheme + "\" not found");
-    }
-
-    private static ExecutionSystemProvider loadAndFind(String scheme, ClassLoader loader) {
-        return find(scheme, ServiceLoader.load(ExecutionSystemProvider.class, loader));
     }
 
     private ExecutionSystems() {
