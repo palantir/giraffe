@@ -14,9 +14,9 @@ introduced in Java 7.
 
 ```java
 Host example = Host.fromHostname("example.com");
-SshHost<?> ssh = SshHost.authWithPassword(example, "giraffe", "l0ngN3ck");
+SshHostAccessor ssh = SshHostAccessor.authWithPassword(example, "giraffe", "l0ngN3ck");
 
-try (HostControlSystem hcs = HostControlSystems.openRemote(ssh)) {
+try (HostControlSystem hcs = ssh.open()) {
     Path logs = hcs.getPath("server/logs");
     Files.copy(logs.resolve("access.log"), Paths.get("log/example-access.log");
 
