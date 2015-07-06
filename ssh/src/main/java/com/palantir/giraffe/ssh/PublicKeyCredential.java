@@ -25,7 +25,7 @@ import javax.annotation.CheckForNull;
  *
  * @author bkeyes
  */
-public final class PublicKeyCredential extends AbstractSshCredential {
+public final class PublicKeyCredential extends SshCredential {
 
     @CheckForNull
     private final Path keyPath;

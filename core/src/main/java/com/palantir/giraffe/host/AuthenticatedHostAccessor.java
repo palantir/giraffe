@@ -13,30 +13,18 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh;
-
-import java.io.IOException;
+package com.palantir.giraffe.host;
 
 /**
- * Authenticates SSH connections using a password.
+ * A {@link HostAccessor} for a host that requires authentication.
  *
  * @author bkeyes
+ *
+ * @param <C> the type of {@link Credential} used to access the host.
  */
-public final class PasswordCredential extends SshCredential {
-
-    private final char[] password;
-
-    public PasswordCredential(String username, char[] password) {
-        super(username);
-        this.password = password.clone();
-    }
+public interface AuthenticatedHostAccessor<C extends Credential<?>> extends HostAccessor {
 
     @Override
-    public void authenticate(SshAuthenticator authenticator) throws IOException {
-        authenticator.authByPassword(this, password.clone());
-    }
+    AuthenticatedSystemRequest<C> request();
 
-    public char[] getPassword() {
-        return password.clone();
-    }
 }

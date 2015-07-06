@@ -18,8 +18,7 @@ package com.palantir.giraffe.host;
 import java.io.IOException;
 
 /**
- * Contains information required to authenticate a connection to a remote host
- * or service.
+ * Contains information required to authenticate with a host or service.
  *
  * @author bkeyes
  *

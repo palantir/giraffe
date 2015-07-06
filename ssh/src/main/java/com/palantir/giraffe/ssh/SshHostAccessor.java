@@ -21,51 +21,45 @@ import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 
 import com.palantir.giraffe.SystemConverter;
 import com.palantir.giraffe.command.ExecutionSystem;
 import com.palantir.giraffe.file.base.SuppressedCloseable;
 import com.palantir.giraffe.host.AbstractHostControlSystem;
+import com.palantir.giraffe.host.AuthenticatedHostAccessor;
 import com.palantir.giraffe.host.Host;
 import com.palantir.giraffe.host.HostControlSystem;
-import com.palantir.giraffe.host.RemoteHostAccessor;
-import com.palantir.giraffe.ssh.internal.SshEnvironments;
 import com.palantir.giraffe.ssh.internal.SshUris;
 
 /**
  * Provides access to a file system and execution system on a host using SSH.
  *
  * @author bkeyes
- *
- * @param <C> the type of credential used to access the host
  */
-public final class SshHost<C extends AbstractSshCredential> implements RemoteHostAccessor<C> {
+public final class SshHostAccessor implements AuthenticatedHostAccessor<SshCredential> {
 
-    private static final int DEFAULT_SSH_PORT = 22;
+    private static final int DEFAULT_PORT = 22;
 
-    public static SshHost<PasswordCredential> authWithPassword(Host host, String username,
-            String password) {
+    public static SshHostAccessor authWithPassword(Host host, String username, String password) {
         return authWithCredential(host, new PasswordCredential(username, password.toCharArray()));
     }
 
-    public static SshHost<PasswordCredential> authWithPassword(Host host, String username,
-            char[] password) {
+    public static SshHostAccessor authWithPassword(Host host, String username, char[] password) {
         return authWithCredential(host, new PasswordCredential(username, password));
     }
 
-    public static SshHost<PasswordCredential> authWithPassword(Host host, String username,
-            int port, char[] password) {
+    public static SshHostAccessor authWithPassword(Host host, String username, int port,
+            char[] password) {
         return authWithCredential(host, port, new PasswordCredential(username, password));
     }
 
-    public static SshHost<PublicKeyCredential> authWithKey(Host host, String username,
-            Path privateKeyPath) throws IOException {
+    public static SshHostAccessor authWithKey(Host host, String username, Path privateKeyPath)
+            throws IOException {
         return authWithCredential(host, readKey(username, privateKeyPath));
     }
 
-    public static SshHost<PublicKeyCredential> authWithKey(Host host, String username,
-            int port, Path privateKeyPath) throws IOException {
+    public static SshHostAccessor authWithKey(Host host, String username, int port,
+            Path privateKeyPath) throws IOException {
         return authWithCredential(host, port, readKey(username, privateKeyPath));
     }
 
@@ -73,72 +67,55 @@ public final class SshHost<C extends AbstractSshCredential> implements RemoteHos
         return new PublicKeyCredential(username, Files.readAllBytes(file), file);
     }
 
-    public static SshHost<PublicKeyCredential> authWithKey(Host host, String username,
-            byte[] privateKey) {
+    public static SshHostAccessor authWithKey(Host host, String username, byte[] privateKey) {
         return authWithCredential(host, new PublicKeyCredential(username, privateKey));
     }
 
-    public static SshHost<PublicKeyCredential> authWithKey(Host host, String username,
-            int port, byte[] privateKey) {
+    public static SshHostAccessor authWithKey(Host host, String username, int port,
+            byte[] privateKey) {
         return authWithCredential(host, port, new PublicKeyCredential(username, privateKey));
     }
 
-    public static <C extends AbstractSshCredential> SshHost<C> authWithCredential(Host host,
-            C credential) {
-        return authWithCredential(host, DEFAULT_SSH_PORT, credential);
+    public static SshHostAccessor authWithCredential(Host host, SshCredential credential) {
+        return authWithCredential(host, DEFAULT_PORT, credential);
     }
 
-    public static <C extends AbstractSshCredential> SshHost<C> authWithCredential(Host host,
-            int port, C credential) {
-        return new SshHost<C>(host, port, credential);
+    public static SshHostAccessor authWithCredential(Host host, int port,
+            SshCredential credential) {
+        URI uri = SshUris.getHostUri(host, port, credential);
+        return new SshHostAccessor(new SshSystemRequest(uri, credential));
     }
 
-    private final Host host;
-    private final int port;
-    private final C credential;
+    private final SshSystemRequest request;
 
-    private SshHost(Host host, int port, C credential) {
-        this.host = host;
-        this.port = port;
-        this.credential = credential;
-    }
-
-    public URI getSystemUri() {
-        return SshUris.getUri(getHost(), getPort(), getCredential());
+    private SshHostAccessor(SshSystemRequest request) {
+        this.request = request;
     }
 
     @Override
     public Host getHost() {
-        return host;
-    }
-
-    public int getPort() {
-        return port;
+        return Host.fromUri(request.uri());
     }
 
     @Override
-    public C getCredential() {
-        return credential;
-    }
-
-    public Map<String, ?> getSystemEnvironment() {
-        return SshEnvironments.makeEnv(this);
+    public SshSystemRequest request() {
+        return request;
     }
 
     @Override
-    public HostControlSystem openHostControlSystem() throws IOException {
+    public HostControlSystem open() throws IOException {
         FileSystem fs = FileSystems.newFileSystem(
-                getSystemUri(),
-                getSystemEnvironment(),
+                request.fileSystemUri(),
+                request.options(),
                 getClass().getClassLoader());
 
         // use the file system as the canonical system source
-        return new SshHostControlSystem(host, fs, SystemConverter.asExecutionSystem(fs));
+        return new SshHostControlSystem(request.uri(), fs, SystemConverter.asExecutionSystem(fs));
     }
 
     private static final class SshHostControlSystem extends AbstractHostControlSystem {
-        private SshHostControlSystem(Host host, FileSystem fs, ExecutionSystem es) {
-            super(host, fs, es);
+        private SshHostControlSystem(URI uri, FileSystem fs, ExecutionSystem es) {
+            super(uri, fs, es);
         }
 
         @Override

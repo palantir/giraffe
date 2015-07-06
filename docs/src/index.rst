@@ -34,8 +34,8 @@ hosts::
 
     // remote
     Host host = Host.fromHostname("gazelle.example.com");
-    SshHost<?> ssh = SshHost.authWithKey(host, "admin", Paths.get("/home/admin/.ssh/id_rsa"));
-    try (HostControlSystem hcs = HostControlSystems.openRemote(ssh)) {
+    SshHostAccessor ssh = SshHostAccessor.authWithKey(host, "admin", Paths.get("/home/admin/.ssh/id_rsa"));
+    try (HostControlSystem hcs = ssh.open()) {
         configureAndStartServer(hcs.getPath("/opt/gazelle"), hcs.getExecutionSystem());
     }
 

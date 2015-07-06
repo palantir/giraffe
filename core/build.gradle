@@ -53,5 +53,5 @@ test {
 }
 
 jacocoCoverage {
-    threshold 0.5, project.name
+    threshold 0.45, project.name
 }

@@ -17,9 +17,9 @@ package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
 
-import com.palantir.giraffe.ssh.AbstractSshCredential;
 import com.palantir.giraffe.ssh.SshAuthenticator;
-import com.palantir.giraffe.ssh.SshHost;
+import com.palantir.giraffe.ssh.SshCredential;
+import com.palantir.giraffe.ssh.SshSystemRequest;
 
 import net.schmizz.sshj.Config;
 import net.schmizz.sshj.SSHClient;
@@ -35,13 +35,13 @@ final class SshConnectionFactory {
         this.config = sshjConfiguration;
     }
 
-    public SSHClient newAuthedConnection(SshHost<?> host) throws IOException {
+    public SSHClient newAuthedConnection(SshSystemRequest request) throws IOException {
         SSHClient sshClient = new SSHClient(config);
         sshClient.getTransport().addHostKeyVerifier(new PromiscuousVerifier());
 
         try {
-            sshClient.connect(host.getHost().getHostname(), host.getPort());
-            host.getCredential().authenticate(new Authenticator(sshClient));
+            sshClient.connect(request.uri().getHost(), request.getPort());
+            request.getCredential().authenticate(new Authenticator(sshClient));
         } catch (IOException e) {
             IOUtils.closeQuietly(sshClient);
             throw e;
@@ -58,13 +58,13 @@ final class SshConnectionFactory {
         }
 
         @Override
-        public void authByPassword(AbstractSshCredential credential, char[] password)
+        public void authByPassword(SshCredential credential, char[] password)
                 throws IOException {
             client.authPassword(credential.getUsername(), password);
         }
 
         @Override
-        public void authByPublicKey(AbstractSshCredential credential, byte[] privateKey)
+        public void authByPublicKey(SshCredential credential, byte[] privateKey)
                 throws IOException {
             KeyProvider keyProvider = client.loadKeys(new String(privateKey), null, null);
             client.authPublickey(credential.getUsername(), keyProvider);

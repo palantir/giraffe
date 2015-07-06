@@ -13,30 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh;
-
-import java.io.IOException;
-
+// CHECKSTYLE:OFF
 /**
- * Authenticates SSH connections using a password.
- *
- * @author bkeyes
+ * Service-provider classes for the <a href="{@docRoot}/com/palantir/giraffe/host/package-summary.html">{@code com.palantir.giraffe.host}</a>
+ * package.
  */
-public final class PasswordCredential extends SshCredential {
-
-    private final char[] password;
-
-    public PasswordCredential(String username, char[] password) {
-        super(username);
-        this.password = password.clone();
-    }
-
-    @Override
-    public void authenticate(SshAuthenticator authenticator) throws IOException {
-        authenticator.authByPassword(this, password.clone());
-    }
-
-    public char[] getPassword() {
-        return password.clone();
-    }
-}
+// CHECKSTYLE:ON
+package com.palantir.giraffe.host.spi;

@@ -17,11 +17,9 @@ package com.palantir.giraffe.command.spi;
 
 import java.io.IOException;
 import java.net.URI;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.ServiceLoader;
-import java.util.Set;
 
 import com.google.common.collect.ImmutableList;
 import com.palantir.giraffe.command.Command;
@@ -29,6 +27,8 @@ import com.palantir.giraffe.command.CommandContext;
 import com.palantir.giraffe.command.CommandFuture;
 import com.palantir.giraffe.command.ExecutionSystem;
 import com.palantir.giraffe.command.ExecutionSystems;
+import com.palantir.giraffe.internal.SchemeIdentifiable;
+import com.palantir.giraffe.internal.SchemeProviderLoader;
 
 /**
  * Service provider class for execution systems. The methods defined by the
@@ -65,38 +65,21 @@ import com.palantir.giraffe.command.ExecutionSystems;
  *
  * @author bkeyes
  */
-public abstract class ExecutionSystemProvider {
+public abstract class ExecutionSystemProvider implements SchemeIdentifiable {
 
     private static final class InstalledProvidersHolder {
         private static final ImmutableList<ExecutionSystemProvider> providers = loadProviders();
 
         private static ImmutableList<ExecutionSystemProvider> loadProviders() {
-            ImmutableList.Builder<ExecutionSystemProvider> builder = ImmutableList.builder();
-            Set<String> schemes = new HashSet<>();
-
-            ServiceLoader<ExecutionSystemProvider> loader = ServiceLoader.load(
-                    ExecutionSystemProvider.class,
-                    ClassLoader.getSystemClassLoader());
-
-            ExecutionSystemProvider defaultProvider = ExecutionSystems.getDefault().provider();
-            schemes.add(defaultProvider.getScheme());
-            builder.add(defaultProvider);
-
-            for (ExecutionSystemProvider provider : loader) {
-                if (schemes.add(provider.getScheme())) {
-                    builder.add(provider);
-                }
-            }
-
-            return builder.build();
+            return new SchemeProviderLoader<>(ExecutionSystemProvider.class)
+                    .setDefaultProvider(ExecutionSystems.getDefault().provider())
+                    .loadProviders();
         }
     }
 
     public static List<ExecutionSystemProvider> installedProviders() {
         return InstalledProvidersHolder.providers;
     }
-
-    public abstract String getScheme();
 
     public abstract ExecutionSystem newExecutionSystem(URI uri, Map<String, ?> env)
             throws IOException;

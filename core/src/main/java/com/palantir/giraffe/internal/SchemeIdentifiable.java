@@ -13,25 +13,13 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh;
-
-import com.palantir.giraffe.host.Credential;
+package com.palantir.giraffe.internal;
 
 /**
- * Base class for SSH credentials.
+ * Implementations can be identified by a URI scheme.
  *
  * @author bkeyes
  */
-public abstract class AbstractSshCredential extends Credential<SshAuthenticator> {
-
-    private final String username;
-
-    AbstractSshCredential(String username) {
-        super(SshAuthenticator.class);
-        this.username = username;
-    }
-
-    public final String getUsername() {
-        return username;
-    }
+public interface SchemeIdentifiable {
+    String getScheme();
 }

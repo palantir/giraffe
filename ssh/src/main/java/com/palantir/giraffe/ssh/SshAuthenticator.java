@@ -23,15 +23,14 @@ import com.palantir.giraffe.host.Authenticator;
  * Implementations of this interface authenticate SSH connections given
  * appropriate credentials.
  * <p>
- * This class participates in the visitor pattern with
- * {@link AbstractSshCredential}.
+ * This class participates in the visitor pattern with {@link SshCredential}.
  *
  * @author bkeyes
  */
 public interface SshAuthenticator extends Authenticator {
 
-    void authByPassword(AbstractSshCredential credential, char[] password) throws IOException;
+    void authByPassword(SshCredential credential, char[] password) throws IOException;
 
-    void authByPublicKey(AbstractSshCredential credential, byte[] privateKey) throws IOException;
+    void authByPublicKey(SshCredential credential, byte[] privateKey) throws IOException;
 
 }

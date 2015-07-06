@@ -18,6 +18,7 @@ package com.palantir.giraffe.host;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.palantir.giraffe.SystemPreconditions.checkSameHost;
 
+import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 
@@ -33,12 +34,15 @@ import com.palantir.giraffe.command.ExecutionSystem;
  */
 public abstract class AbstractHostControlSystem implements HostControlSystem {
 
+    private final Host host;
+    private final URI uri;
     private final FileSystem fs;
     private final ExecutionSystem es;
-    private final Host host;
 
-    protected AbstractHostControlSystem(Host host, FileSystem fs, ExecutionSystem es) {
-        this.host = checkNotNull(host, "host must be non-null");
+    protected AbstractHostControlSystem(URI uri, FileSystem fs, ExecutionSystem es) {
+        this.uri = checkNotNull(uri, "uri must be non-null");
+        this.host = Host.fromUri(uri);
+
         this.fs = checkNotNull(fs, "file system must be non-null");
         this.es = checkNotNull(es, "execution system must be non-null");
 
@@ -77,7 +81,7 @@ public abstract class AbstractHostControlSystem implements HostControlSystem {
     }
 
     @Override
-    public final String getHostname() {
-        return host.getHostname();
+    public final URI uri() {
+        return uri;
     }
 }

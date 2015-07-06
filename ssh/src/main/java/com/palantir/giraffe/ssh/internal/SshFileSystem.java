@@ -39,7 +39,6 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -74,13 +73,17 @@ final class SshFileSystem extends BaseFileSystem<SshPath> implements ExecutionSy
     private final SharedSshClient client;
     private final Logger logger;
     private final FileAttributeViewRegistry viewRegistry;
+    private final InternalSshSystemRequest request;
+
     private volatile SshPath defaultDirectory;
 
-    SshFileSystem(SshFileSystemProvider provider, SshSystemContext context) {
+    SshFileSystem(SshFileSystemProvider provider, InternalSshSystemRequest request) {
         this.provider = provider;
-        this.uri = context.getUri();
-        this.client = context.getClient();
-        this.logger = HostLogger.create(context.getLogger(), Host.fromUri(uri));
+
+        this.request = request;
+        this.uri = request.fileSystemUri();
+        this.client = request.getClient();
+        this.logger = HostLogger.create(request.getLogger(), Host.fromUri(uri));
 
         // always close the connection last
         registerCloseable(client, Integer.MAX_VALUE);
@@ -112,8 +115,9 @@ final class SshFileSystem extends BaseFileSystem<SshPath> implements ExecutionSy
     @Override
     public ExecutionSystem asExecutionSystem() throws IOException {
         if (client.addUser()) {
-            Map<String, ?> env = SshEnvironments.makeEnv(client);
-            return ExecutionSystems.newExecutionSystem(uri, env, getClass().getClassLoader());
+            URI execUri = SshUris.replaceScheme(uri, SshUris.getExecScheme());
+            return ExecutionSystems.newExecutionSystem(
+                    execUri, request.options(), getClass().getClassLoader());
         } else {
             throw new ClosedFileSystemException();
         }

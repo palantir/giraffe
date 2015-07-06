@@ -40,7 +40,7 @@ import org.apache.sshd.server.sftp.SftpSubsystem;
 import org.apache.sshd.server.shell.ProcessShellFactory;
 
 import com.palantir.giraffe.host.Host;
-import com.palantir.giraffe.ssh.SshHost;
+import com.palantir.giraffe.ssh.SshHostAccessor;
 
 /**
  * An embeded SSH server for testing SSH systems against the local host.
@@ -125,9 +125,9 @@ public class MinaTestServer {
         }
     }
 
-    public SshHost<?> getHost() {
+    public SshHostAccessor getHost() {
         char[] password = PASSWORD.toCharArray();
-        return SshHost.authWithPassword(Host.localhost(), USERNAME, port, password);
+        return SshHostAccessor.authWithPassword(Host.localhost(), USERNAME, port, password);
     }
 
 }

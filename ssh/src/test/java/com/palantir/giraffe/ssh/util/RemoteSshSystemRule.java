@@ -23,8 +23,7 @@ import org.junit.rules.ExternalResource;
 
 import com.palantir.giraffe.host.Host;
 import com.palantir.giraffe.host.HostControlSystem;
-import com.palantir.giraffe.host.HostControlSystems;
-import com.palantir.giraffe.ssh.SshHost;
+import com.palantir.giraffe.ssh.SshHostAccessor;
 import com.palantir.giraffe.test.runner.SystemTestRule;
 
 class RemoteSshSystemRule extends ExternalResource implements SystemTestRule {
@@ -45,10 +44,10 @@ class RemoteSshSystemRule extends ExternalResource implements SystemTestRule {
 
     @Override
     protected void before() throws Throwable {
-        hcs = HostControlSystems.openRemote(getHost());
+        hcs = getHost().open();
     }
 
-    private static SshHost<?> getHost() throws IOException {
+    private static SshHostAccessor getHost() throws IOException {
         String hostSpec = System.getProperty(HOST_PROPERTY);
         if (hostSpec == null) {
             throw new IllegalStateException(HOST_PROPERTY + " is not set");
@@ -66,7 +65,9 @@ class RemoteSshSystemRule extends ExternalResource implements SystemTestRule {
 
         String username = hostSpec.substring(0, sep);
         String hostname = hostSpec.substring(sep + 1);
-        return SshHost.authWithKey(Host.fromHostname(hostname), username, Paths.get(keyPath));
+        return SshHostAccessor.authWithKey(
+                Host.fromHostname(hostname),
+                username, Paths.get(keyPath));
     }
 
     @Override

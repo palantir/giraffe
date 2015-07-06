@@ -16,6 +16,7 @@
 package com.palantir.giraffe.host;
 
 import java.io.Closeable;
+import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.Path;
 
@@ -71,8 +72,7 @@ public interface HostControlSystem extends Closeable {
     Host getHost();
 
     /**
-     * Returns the name of the host controlled by this system.
+     * Returns this system's URI.
      */
-    String getHostname();
-
+    URI uri();
 }
