@@ -13,25 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh;
-
-import com.palantir.giraffe.host.Credential;
-
+// CHECKSTYLE:OFF
 /**
- * Base class for SSH credentials.
- *
- * @author bkeyes
+ * Service-provider classes for the <a href="{@docRoot}/com/palantir/giraffe/host/package-summary.html">{@code com.palantir.giraffe.host}</a>
+ * package.
  */
-public abstract class AbstractSshCredential extends Credential<SshAuthenticator> {
-
-    private final String username;
-
-    AbstractSshCredential(String username) {
-        super(SshAuthenticator.class);
-        this.username = username;
-    }
-
-    public final String getUsername() {
-        return username;
-    }
-}
+// CHECKSTYLE:ON
+package com.palantir.giraffe.host.spi;

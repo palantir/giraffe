@@ -74,9 +74,9 @@ public final class SshFileSystemProvider extends BaseFileSystemProvider<SshPath>
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         SshUris.checkFileUri(uri);
 
-        Logger logger = SshEnvironments.getLogger(env);
-        SharedSshClient client = SshEnvironments.getClient(env, connectionFactory);
-        return new SshFileSystem(this, new SshSystemContext(uri, client, logger));
+        InternalSshSystemRequest request = new InternalSshSystemRequest(uri, env);
+        request.setClientIfMissing(connectionFactory);
+        return new SshFileSystem(this, request);
     }
 
     @Override

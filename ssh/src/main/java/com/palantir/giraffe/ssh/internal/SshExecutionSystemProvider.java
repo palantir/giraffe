@@ -22,8 +22,6 @@ import java.net.URI;
 import java.nio.file.ProviderMismatchException;
 import java.util.Map;
 
-import org.slf4j.Logger;
-
 import com.palantir.giraffe.command.Command;
 import com.palantir.giraffe.command.CommandContext;
 import com.palantir.giraffe.command.CommandFuture;
@@ -55,9 +53,9 @@ public final class SshExecutionSystemProvider extends ExecutionSystemProvider {
     public ExecutionSystem newExecutionSystem(URI uri, Map<String, ?> env) throws IOException {
         SshUris.checkExecUri(uri);
 
-        Logger logger = SshEnvironments.getLogger(env);
-        SharedSshClient client = SshEnvironments.getClient(env, connectionFactory);
-        return new SshExecutionSystem(this, new SshSystemContext(uri, client, logger));
+        InternalSshSystemRequest request = new InternalSshSystemRequest(uri, env);
+        request.setClientIfMissing(connectionFactory);
+        return new SshExecutionSystem(this, request);
     }
 
     @Override

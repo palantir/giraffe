@@ -19,7 +19,6 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
-import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -42,12 +41,16 @@ final class SshExecutionSystem extends ExecutionSystem implements FileSystemConv
     private final SharedSshClient client;
     private final Logger logger;
     private final ExecutorService executor;
+    private final InternalSshSystemRequest request;
 
-    protected SshExecutionSystem(SshExecutionSystemProvider provider, SshSystemContext context) {
+    protected SshExecutionSystem(SshExecutionSystemProvider provider,
+                                 InternalSshSystemRequest request) {
         this.provider = provider;
-        this.uri = context.getUri();
-        this.client = context.getClient();
-        this.logger = HostLogger.create(context.getLogger(), Host.fromUri(uri));
+
+        this.request = request;
+        this.uri = request.executionSystemUri();
+        this.client = request.getClient();
+        this.logger = HostLogger.create(request.getLogger(), Host.fromUri(uri));
 
         closed = new AtomicBoolean();
         executor = Executors.newCachedThreadPool();
@@ -85,8 +88,8 @@ final class SshExecutionSystem extends ExecutionSystem implements FileSystemConv
     public FileSystem asFileSystem() throws IOException {
         if (client.addUser()) {
             URI fileUri = SshUris.replaceScheme(uri, SshUris.getFileScheme());
-            Map<String, ?> env = SshEnvironments.makeEnv(client);
-            return FileSystems.newFileSystem(fileUri, env, getClass().getClassLoader());
+            return FileSystems.newFileSystem(
+                    fileUri, request.options(), getClass().getClassLoader());
         } else {
             throw new ClosedExecutionSystemException();
         }

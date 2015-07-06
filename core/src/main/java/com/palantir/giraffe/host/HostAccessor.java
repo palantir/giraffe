@@ -18,14 +18,11 @@ package com.palantir.giraffe.host;
 import java.io.IOException;
 
 /**
- * Provides access to a remote host by opening file systems and execution
- * systems.
+ * Provides access to a host by opening file systems and execution systems.
  *
  * @author bkeyes
- *
- * @param <C> the type of {@link Credential} used to access the host.
  */
-public interface RemoteHostAccessor<C extends Credential<?>> {
+public interface HostAccessor {
 
     /**
      * Returns the {@link Host} that this object makes accessible.
@@ -33,9 +30,9 @@ public interface RemoteHostAccessor<C extends Credential<?>> {
     Host getHost();
 
     /**
-     * Returns the {@link Credential} used to authenticate with this host.
+     * Returns the {@link SystemRequest} object used when opening new systems.
      */
-    C getCredential();
+    SystemRequest request();
 
     /**
      * Opens a new host control system on this host. The returned system should be
@@ -46,6 +43,6 @@ public interface RemoteHostAccessor<C extends Credential<?>> {
      *
      * @throws IOException if an I/O error occurs while opening the system
      */
-    HostControlSystem openHostControlSystem() throws IOException;
+    HostControlSystem open() throws IOException;
 
 }

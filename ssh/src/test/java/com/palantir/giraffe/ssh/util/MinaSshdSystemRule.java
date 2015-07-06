@@ -21,7 +21,6 @@ import java.nio.file.Path;
 import org.junit.rules.ExternalResource;
 
 import com.palantir.giraffe.host.HostControlSystem;
-import com.palantir.giraffe.host.HostControlSystems;
 import com.palantir.giraffe.test.runner.SystemTestRule;
 
 class MinaSshdSystemRule extends ExternalResource implements SystemTestRule {
@@ -39,7 +38,7 @@ class MinaSshdSystemRule extends ExternalResource implements SystemTestRule {
     @Override
     protected void before() throws Throwable {
         server.start();
-        hcs = HostControlSystems.openRemote(server.getHost());
+        hcs = server.getHost().open();
     }
 
     @Override

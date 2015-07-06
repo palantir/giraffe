@@ -13,39 +13,25 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.ssh.internal;
+package com.palantir.giraffe.ssh;
 
-import java.net.URI;
-
-import org.slf4j.Logger;
+import com.palantir.giraffe.host.Credential;
 
 /**
- * Contains information required to create new SSH file and execution systems.
+ * Base class for SSH credentials.
  *
  * @author bkeyes
  */
-class SshSystemContext {
+public abstract class SshCredential extends Credential<SshAuthenticator> {
 
-    private final URI uri;
-    private final SharedSshClient client;
-    private final Logger logger;
+    private final String username;
 
-    public SshSystemContext(URI uri, SharedSshClient client, Logger logger) {
-        this.uri = uri;
-        this.client = client;
-        this.logger = logger;
+    SshCredential(String username) {
+        super(SshAuthenticator.class);
+        this.username = username;
     }
 
-    public URI getUri() {
-        return uri;
+    public final String getUsername() {
+        return username;
     }
-
-    public SharedSshClient getClient() {
-        return client;
-    }
-
-    public Logger getLogger() {
-        return logger;
-    }
-
 }
