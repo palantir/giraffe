@@ -42,7 +42,7 @@ public class LocalHostAcessorProvider extends HostAccessorProvider {
     }
 
     private static final URI SYSTEM_URI = URI.create(SCHEME + ":///");
-    private static final HostAccessor INSTANCE = new LocalHostAccessor();
+    private static final LocalHostAccessor INSTANCE = new LocalHostAccessor();
 
     @Override
     public String getScheme() {
@@ -50,7 +50,7 @@ public class LocalHostAcessorProvider extends HostAccessorProvider {
     }
 
     @Override
-    public HostAccessor newAccessor(SystemRequest request) {
+    public LocalHostAccessor newAccessor(SystemRequest request) {
         checkUri(request.uri());
         return INSTANCE;
     }
@@ -64,7 +64,10 @@ public class LocalHostAcessorProvider extends HostAccessorProvider {
         checkArgument(uri.getFragment() == null, "fragment component present");
     }
 
-    private static final class LocalHostAccessor implements HostAccessor {
+    /**
+     * {@link HostAccessor} for the host running the Java Virtual Machine.
+     */
+    public static final class LocalHostAccessor implements HostAccessor {
         private final SystemRequest request;
 
         private LocalHostAccessor() {

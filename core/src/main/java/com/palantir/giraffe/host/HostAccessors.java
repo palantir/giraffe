@@ -21,6 +21,7 @@ import java.net.URI;
 import java.util.List;
 
 import com.palantir.giraffe.host.spi.HostAccessorProvider;
+import com.palantir.giraffe.internal.LocalHostAcessorProvider.LocalHostAccessor;
 import com.palantir.giraffe.internal.SchemeProviderFinder;
 
 /**
@@ -31,10 +32,10 @@ import com.palantir.giraffe.internal.SchemeProviderFinder;
 public final class HostAccessors {
 
     private static final class DefaultAccessorHolder {
-        private static final HostAccessor instance = defaultInstance();
+        private static final LocalHostAccessor instance = defaultInstance();
 
-        private static HostAccessor defaultInstance() {
-            return newAccessor(new SystemRequest(URI.create("local:///")));
+        private static LocalHostAccessor defaultInstance() {
+            return (LocalHostAccessor) newAccessor(new SystemRequest(URI.create("local:///")));
         }
     }
 
@@ -44,7 +45,7 @@ public final class HostAccessors {
      * The {@code HostControlSystem} for the local host is always open; closing
      * it has no effect.
      */
-    public static HostAccessor getDefault() {
+    public static LocalHostAccessor getDefault() {
         return DefaultAccessorHolder.instance;
     }
 
