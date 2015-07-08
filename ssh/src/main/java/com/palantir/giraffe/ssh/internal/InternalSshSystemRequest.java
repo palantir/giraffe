@@ -21,9 +21,13 @@ import java.util.Map;
 
 import com.palantir.giraffe.ssh.SshSystemRequest;
 
+import net.schmizz.sshj.SSHClient;
+
 class InternalSshSystemRequest extends SshSystemRequest {
 
-    public static final String CLIENT_KEY = "ssh-client";
+    public static final String SOURCE_KEY = "giraffe.internal.source";
+    public static final String CLIENT_KEY = "giraffe.internal.sshClient";
+    public static final String CLOSE_CTX_KEY = "giraffe.internal.closeContext";
 
     public InternalSshSystemRequest(URI uri, Map<String, ?> env) {
         super(SshUris.replaceScheme(uri, SshUris.getHostScheme()), env);
@@ -33,18 +37,48 @@ class InternalSshSystemRequest extends SshSystemRequest {
         this(request.uri(), request.options());
     }
 
-    public void setClientIfMissing(SshConnectionFactory factory) throws IOException {
+    public SSHClient getClient() {
+        return get(CLIENT_KEY, SSHClient.class);
+    }
+
+    public boolean setClientIfMissing(SshConnectionFactory factory) throws IOException {
         if (!contains(CLIENT_KEY)) {
-            SharedSshClient client = new SharedSshClient(factory.newAuthedConnection(this));
+            SSHClient client = factory.newAuthedConnection(this);
             set(CLIENT_KEY, client);
+            return true;
         } else {
             // call getClient() for type check
             getClient();
+            return false;
         }
     }
 
-    public SharedSshClient getClient() {
-        return get(CLIENT_KEY, SharedSshClient.class);
+    public boolean isInsternalSource() {
+        if (contains(SOURCE_KEY)) {
+            return get(SOURCE_KEY, Class.class).equals(SshHostControlSystem.class);
+        } else {
+            return false;
+        }
+    }
+
+    public void setSource(Class<?> sourceClass) {
+        set(SOURCE_KEY, sourceClass);
+    }
+
+    public CloseContext getCloseContext() {
+        return get(CLOSE_CTX_KEY, CloseContext.class);
+    }
+
+    public void setCloseContext(CloseContext context) {
+        set(CLOSE_CTX_KEY, context);
+    }
+
+    public URI fileSystemUri() {
+        return SshUris.replaceScheme(uri(), SshUris.getFileScheme());
+    }
+
+    public URI executionSystemUri() {
+        return SshUris.replaceScheme(uri(), SshUris.getExecScheme());
     }
 
 }

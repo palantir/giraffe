@@ -31,7 +31,7 @@ import com.palantir.giraffe.file.test.FileSystemReadAttributesTest;
 import com.palantir.giraffe.file.test.FileSystemSymlinkTest;
 import com.palantir.giraffe.file.test.FileSystemWriteAttributesTest;
 import com.palantir.giraffe.file.test.runner.FileSystemTestRule;
-import com.palantir.giraffe.ssh.FileSystemConversionTest;
+import com.palantir.giraffe.ssh.FileSystemUpgradeTest;
 import com.palantir.giraffe.ssh.util.MinaSshdFileSystemRule;
 import com.palantir.giraffe.test.runner.RemoveTestsFilter;
 import com.palantir.giraffe.test.runner.SystemSuite;
@@ -54,7 +54,7 @@ import com.palantir.giraffe.test.runner.SystemSuite.SystemRule;
     FileSystemSymlinkTest.class,
     FileSystemCopyMoveTest.class,
     FileSystemProviderMismatchTest.class,
-    FileSystemConversionTest.class
+    FileSystemUpgradeTest.class
 })
 public class EmbeddedSshFileSystemSuite implements Filterable {
 

@@ -77,12 +77,4 @@ public class SshSystemRequest extends AuthenticatedSystemRequest<SshCredential> 
     public String getUsername() {
         return getCredential().getUsername();
     }
-
-    public URI fileSystemUri() {
-        return SshUris.replaceScheme(uri(), SshUris.getFileScheme());
-    }
-
-    public URI executionSystemUri() {
-        return SshUris.replaceScheme(uri(), SshUris.getExecScheme());
-    }
 }

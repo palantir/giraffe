@@ -47,7 +47,6 @@ import com.palantir.giraffe.file.base.feature.RecursiveCopy;
 import com.palantir.giraffe.file.base.feature.RecursiveDelete;
 import com.palantir.giraffe.file.base.feature.RecursivePermissions;
 
-import net.schmizz.sshj.DefaultConfig;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
 
 /**
@@ -58,11 +57,8 @@ import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
 public final class SshFileSystemProvider extends BaseFileSystemProvider<SshPath>
         implements RecursiveDelete, RecursivePermissions, LargeFileCopy, RecursiveCopy {
 
-    private final SshConnectionFactory connectionFactory;
-
     public SshFileSystemProvider() {
         super(SshPath.class);
-        connectionFactory = new SshConnectionFactory(new DefaultConfig());
     }
 
     @Override
@@ -73,10 +69,17 @@ public final class SshFileSystemProvider extends BaseFileSystemProvider<SshPath>
     @Override
     public FileSystem newFileSystem(URI uri, Map<String, ?> env) throws IOException {
         SshUris.checkFileUri(uri);
-
         InternalSshSystemRequest request = new InternalSshSystemRequest(uri, env);
-        request.setClientIfMissing(connectionFactory);
-        return new SshFileSystem(this, request);
+        if (request.isInsternalSource()) {
+            // this is being requested as part of HostControlSystem creation
+            return new SshFileSystem(this, request);
+        } else {
+            return SshHostControlSystem.builder(request)
+                    .setFileSystem(this)
+                    .setExecutionSystem()
+                    .build()
+                    .getFileSystem();
+        }
     }
 
     @Override

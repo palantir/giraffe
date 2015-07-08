@@ -30,9 +30,9 @@
  * <h3>System Conversion</h3>
  * <p>
  * {@code FileSystem} and {@code ExecutionSystem} instances from the SSH
- * provider support conversion using {@link com.palantir.giraffe.SystemConverter}
- * Converted systems share a connection with the original system. While closing
- * one of these systems does not affect the other, any event that corrupts the
+ * provider support upgrades using {@link com.palantir.giraffe.SystemUpgrader}
+ * Upgrades systems share a connection with the original system. While closing
+ * the upgrades system does not affect the original, any event that corrupts the
  * connection will affect both systems. Changes made by one system are visible
  * to the other system provided the modification <em>happens-before</em> the
  * read. Note that the reverse is not true: detecting a modification does
