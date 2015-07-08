@@ -15,6 +15,7 @@
  */
 package com.palantir.giraffe.ssh.internal;
 
+import java.io.Closeable;
 import java.io.IOError;
 import java.io.IOException;
 import java.net.URI;
@@ -48,14 +49,15 @@ import com.palantir.giraffe.command.CommandContext;
 import com.palantir.giraffe.command.CommandResult;
 import com.palantir.giraffe.command.Commands;
 import com.palantir.giraffe.command.ExecutionSystem;
-import com.palantir.giraffe.command.ExecutionSystemConvertible;
-import com.palantir.giraffe.command.ExecutionSystems;
 import com.palantir.giraffe.file.base.BaseFileSystem;
 import com.palantir.giraffe.file.base.attribute.ChmodFilePermissions;
 import com.palantir.giraffe.file.base.attribute.FileAttributeViewRegistry;
 import com.palantir.giraffe.file.base.attribute.PosixFileAttributeViews;
 import com.palantir.giraffe.host.Host;
+import com.palantir.giraffe.host.HostControlSystem;
+import com.palantir.giraffe.host.HostControlSystemUpgradeable;
 
+import net.schmizz.sshj.SSHClient;
 import net.schmizz.sshj.sftp.FileAttributes;
 import net.schmizz.sshj.sftp.FileMode.Type;
 import net.schmizz.sshj.sftp.RemoteResourceInfo;
@@ -64,40 +66,50 @@ import net.schmizz.sshj.sftp.SFTPClient;
 import net.schmizz.sshj.sftp.SFTPException;
 import net.schmizz.sshj.xfer.scp.SCPFileTransfer;
 
-final class SshFileSystem extends BaseFileSystem<SshPath> implements ExecutionSystemConvertible {
+final class SshFileSystem extends BaseFileSystem<SshPath> implements HostControlSystemUpgradeable {
 
     public static final String SEPARATOR = "/";
 
     private final SshFileSystemProvider provider;
     private final URI uri;
-    private final SharedSshClient client;
+    private final SSHClient client;
     private final Logger logger;
     private final FileAttributeViewRegistry viewRegistry;
-    private final InternalSshSystemRequest request;
+    private final CloseContext closeContext;
 
     private volatile SshPath defaultDirectory;
+
+    private SshHostControlSystem sourceSystem;
 
     SshFileSystem(SshFileSystemProvider provider, InternalSshSystemRequest request) {
         this.provider = provider;
 
-        this.request = request;
         this.uri = request.fileSystemUri();
         this.client = request.getClient();
         this.logger = HostLogger.create(request.getLogger(), Host.fromUri(uri));
-
-        // always close the connection last
-        registerCloseable(client, Integer.MAX_VALUE);
 
         SshFileAttributeViewFactory factory = new SshFileAttributeViewFactory(provider);
         viewRegistry = FileAttributeViewRegistry.builder()
                 .add(factory.getBasicFactory())
                 .add(factory.getPosixFactory())
                 .build();
+
+        closeContext = request.getCloseContext();
     }
 
     @Override
     public SshFileSystemProvider provider() {
         return provider;
+    }
+
+    @Override
+    public void close() throws IOException {
+        closeContext.close();
+    }
+
+    @Override
+    public boolean isOpen() {
+        return !closeContext.isClosed();
     }
 
     @Override
@@ -112,43 +124,39 @@ final class SshFileSystem extends BaseFileSystem<SshPath> implements ExecutionSy
         return defaultDirectory;
     }
 
-    @Override
-    public ExecutionSystem asExecutionSystem() throws IOException {
-        if (client.addUser()) {
-            URI execUri = SshUris.replaceScheme(uri, SshUris.getExecScheme());
-            return ExecutionSystems.newExecutionSystem(
-                    execUri, request.options(), getClass().getClassLoader());
-        } else {
-            throw new ClosedFileSystemException();
-        }
+    void setSourceSystem(SshHostControlSystem sourceSystem) {
+        this.sourceSystem = sourceSystem;
     }
 
-    public CommandResult execute(String executable, Object... args) throws IOException {
+    @Override
+    public HostControlSystem asHostControlSystem() throws IOException {
+        checkOpen();
+
+        assert sourceSystem != null : "source HostControlSystem was never set";
+        return sourceSystem.asView();
+    }
+
+    CommandResult execute(String executable, Object... args) throws IOException {
         return execute(executable, Arrays.asList(args));
     }
 
     CommandResult execute(String executable, List<Object> args) throws IOException {
-        try (ExecutionSystem es = asExecutionSystem()) {
-            Command cmd = es.getCommandBuilder(executable).addArguments(args).build();
-            return Commands.execute(cmd, CommandContext.ignoreExitStatus());
-        }
+        ExecutionSystem es = sourceSystem.getExecutionSystem();
+        Command cmd = es.getCommandBuilder(executable).addArguments(args).build();
+        return Commands.execute(cmd, CommandContext.ignoreExitStatus());
     }
 
-    public SFTPClient openSftpClient() throws IOException {
-        if (!isOpen()) {
-            throw new ClosedFileSystemException();
-        }
-        return client.getClient().newSFTPClient();
+    SFTPClient openSftpClient() throws IOException {
+        checkOpen();
+        return client.newSFTPClient();
     }
 
     SCPFileTransfer getScpFileTransfer() {
-        if (!isOpen()) {
-            throw new ClosedFileSystemException();
-        }
-        return client.getClient().newSCPFileTransfer();
+        checkOpen();
+        return client.newSCPFileTransfer();
     }
 
-    protected Logger logger() {
+    Logger logger() {
         return logger;
     }
 
@@ -314,5 +322,20 @@ final class SshFileSystem extends BaseFileSystem<SshPath> implements ExecutionSy
     @Override
     public Iterable<FileStore> getFileStores() {
         throw new UnsupportedOperationException();
+    }
+
+    <C extends Closeable> C registerCloseable(C closeable) {
+        closeContext.registerCloseable(closeable);
+        return closeable;
+    }
+
+    void unregisterCloseable(Closeable closeable) {
+        closeContext.unregister(closeable);
+    }
+
+    private void checkOpen() {
+        if (!isOpen()) {
+            throw new ClosedFileSystemException();
+        }
     }
 }

@@ -15,7 +15,6 @@
  */
 package com.palantir.giraffe.file.base;
 
-import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
 import java.nio.channels.SeekableByteChannel;
@@ -30,7 +29,6 @@ import java.nio.file.WatchService;
 import java.nio.file.attribute.FileAttribute;
 import java.nio.file.attribute.UserPrincipalLookupService;
 import java.util.Set;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
@@ -46,59 +44,8 @@ import com.palantir.giraffe.file.base.attribute.FileAttributeViewRegistry;
  */
 public abstract class BaseFileSystem<P extends BasePath<P>> extends FileSystem {
 
-    private final AtomicBoolean closed = new AtomicBoolean();
-    private final CloseableRegistry closeableRegistry = new CloseableRegistry();
-
     @Override
     public abstract BaseFileSystemProvider<P> provider();
-
-    @Override
-    public final void close() throws IOException {
-        if (closed.compareAndSet(false, true)) {
-            try {
-                closeableRegistry.close();
-                doClose();
-            } finally {
-                provider().fileSystemClosed(this);
-            }
-        }
-    }
-
-    /**
-     * Performs any implementation-specific close actions. By default, this
-     * method does nothing. Any registered resources are closed before this
-     * method is called.
-     *
-     * @throws IOException if an I/O error occurs
-     */
-    protected void doClose() throws IOException {
-        // do nothing by default
-    }
-
-    /**
-     * Registers a {@link Closeable} resource with the default priority of
-     * {@code 0}.
-     */
-    public <C extends Closeable> C registerCloseable(C closeable) {
-        closeableRegistry.register(closeable);
-        return closeable;
-    }
-
-    /**
-     * Registers a {@link Closeable} resource with the given priority.
-     */
-    public <C extends Closeable> C registerCloseable(C closeable, int priority) {
-        closeableRegistry.register(closeable, priority);
-        return closeable;
-    }
-
-    /**
-     * Unregisters a {@link Closeable} resource, usually after it has been
-     * closed.
-     */
-    public void unregisterCloseable(Closeable closeable) {
-        closeableRegistry.unregister(closeable);
-    }
 
     /**
      * Returns the default directory of this file system. The default directory
@@ -128,11 +75,6 @@ public abstract class BaseFileSystem<P extends BasePath<P>> extends FileSystem {
      * @see #getPath(String, String...)
      */
     protected abstract P getPath(String path);
-
-    @Override
-    public final boolean isOpen() {
-        return !closed.get();
-    }
 
     @Override
     public PathMatcher getPathMatcher(String syntaxAndPattern) {

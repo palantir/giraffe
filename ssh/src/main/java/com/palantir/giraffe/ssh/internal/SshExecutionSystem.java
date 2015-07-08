@@ -15,13 +15,11 @@
  */
 package com.palantir.giraffe.ssh.internal;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import org.slf4j.Logger;
 
@@ -29,31 +27,42 @@ import com.palantir.giraffe.command.ClosedExecutionSystemException;
 import com.palantir.giraffe.command.CommandContext;
 import com.palantir.giraffe.command.CommandFuture;
 import com.palantir.giraffe.command.ExecutionSystem;
-import com.palantir.giraffe.file.FileSystemConvertible;
 import com.palantir.giraffe.host.Host;
+import com.palantir.giraffe.host.HostControlSystem;
+import com.palantir.giraffe.host.HostControlSystemUpgradeable;
 import com.palantir.giraffe.internal.CommandFutureTask;
 
-final class SshExecutionSystem extends ExecutionSystem implements FileSystemConvertible {
+import net.schmizz.sshj.SSHClient;
 
-    private final AtomicBoolean closed;
+final class SshExecutionSystem extends ExecutionSystem implements HostControlSystemUpgradeable {
+
     private final SshExecutionSystemProvider provider;
     private final URI uri;
-    private final SharedSshClient client;
+    private final SSHClient client;
     private final Logger logger;
+    private final CloseContext closeContext;
+
     private final ExecutorService executor;
-    private final InternalSshSystemRequest request;
+
+    private SshHostControlSystem sourceSystem;
 
     protected SshExecutionSystem(SshExecutionSystemProvider provider,
                                  InternalSshSystemRequest request) {
         this.provider = provider;
 
-        this.request = request;
         this.uri = request.executionSystemUri();
         this.client = request.getClient();
         this.logger = HostLogger.create(request.getLogger(), Host.fromUri(uri));
 
-        closed = new AtomicBoolean();
+        closeContext = request.getCloseContext();
         executor = Executors.newCachedThreadPool();
+
+        closeContext.registerCloseable(new Closeable() {
+            @Override
+            public void close() {
+                executor.shutdownNow();
+            }
+        });
     }
 
     @Override
@@ -68,15 +77,12 @@ final class SshExecutionSystem extends ExecutionSystem implements FileSystemConv
 
     @Override
     public void close() throws IOException {
-        if (closed.compareAndSet(false, true)) {
-            client.close();
-            executor.shutdownNow();
-        }
+        closeContext.close();
     }
 
     @Override
     public boolean isOpen() {
-        return !closed.get();
+        return !closeContext.isClosed();
     }
 
     @Override
@@ -84,15 +90,16 @@ final class SshExecutionSystem extends ExecutionSystem implements FileSystemConv
         return uri;
     }
 
+    void setSourceSystem(SshHostControlSystem sourceSystem) {
+        this.sourceSystem = sourceSystem;
+    }
+
     @Override
-    public FileSystem asFileSystem() throws IOException {
-        if (client.addUser()) {
-            URI fileUri = SshUris.replaceScheme(uri, SshUris.getFileScheme());
-            return FileSystems.newFileSystem(
-                    fileUri, request.options(), getClass().getClassLoader());
-        } else {
-            throw new ClosedExecutionSystemException();
-        }
+    public HostControlSystem asHostControlSystem() throws IOException {
+        checkOpen();
+
+        assert sourceSystem != null : "source HostControlSystem was never set";
+        return sourceSystem.asView();
     }
 
     protected Logger logger() {
@@ -106,6 +113,12 @@ final class SshExecutionSystem extends ExecutionSystem implements FileSystemConv
     }
 
     private CommandFutureTask newFutureTask(SshCommand command, CommandContext context) {
-        return new SshCommandFuture(command, context, client.getClient(), executor);
+        return new SshCommandFuture(command, context, client, executor);
+    }
+
+    private void checkOpen() {
+        if (!isOpen()) {
+            throw new ClosedExecutionSystemException();
+        }
     }
 }

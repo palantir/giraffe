@@ -17,18 +17,13 @@ package com.palantir.giraffe.ssh;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
-import com.palantir.giraffe.SystemConverter;
-import com.palantir.giraffe.command.ExecutionSystem;
-import com.palantir.giraffe.file.base.SuppressedCloseable;
-import com.palantir.giraffe.host.AbstractHostControlSystem;
 import com.palantir.giraffe.host.AuthenticatedHostAccessor;
 import com.palantir.giraffe.host.Host;
 import com.palantir.giraffe.host.HostControlSystem;
+import com.palantir.giraffe.ssh.internal.SshHostControlSystem;
 import com.palantir.giraffe.ssh.internal.SshUris;
 
 /**
@@ -104,23 +99,9 @@ public final class SshHostAccessor implements AuthenticatedHostAccessor<SshCrede
 
     @Override
     public HostControlSystem open() throws IOException {
-        FileSystem fs = FileSystems.newFileSystem(
-                request.fileSystemUri(),
-                request.options(),
-                getClass().getClassLoader());
-
-        // use the file system as the canonical system source
-        return new SshHostControlSystem(request.uri(), fs, SystemConverter.asExecutionSystem(fs));
-    }
-
-    private static final class SshHostControlSystem extends AbstractHostControlSystem {
-        private SshHostControlSystem(URI uri, FileSystem fs, ExecutionSystem es) {
-            super(uri, fs, es);
-        }
-
-        @Override
-        public void close() throws IOException {
-            SuppressedCloseable.create(getExecutionSystem(), getFileSystem()).close();
-        }
+        return SshHostControlSystem.builder(request)
+            .setFileSystem()
+            .setExecutionSystem()
+            .build();
     }
 }

@@ -13,28 +13,27 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package com.palantir.giraffe.file;
+package com.palantir.giraffe.host;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
 
 /**
- * Systems that implement this interface can be converted into
- * {@link FileSystem} instances.
+ * Systems that implement this interface can be upgraded into
+ * {@link HostControlSystem} instances.
  *
  * @author bkeyes
  */
-public interface FileSystemConvertible {
+public interface HostControlSystemUpgradeable {
 
     /**
-     * Returns an open {@link FileSystem} that accesses the same resources as
+     * Returns a {@link HostControlSystem} view of the resources accessible with
      * this system.
      * <p>
-     * The returned system is independent from this system and either can be
-     * closed without affecting the other.
+     * The returned view is always open and calling {@code close()} has no
+     * effect. Closing the source system closes all views.
      *
      * @throws IOException if an I/O error occurs while creating the new system
      */
-    FileSystem asFileSystem() throws IOException;
+    HostControlSystem asHostControlSystem() throws IOException;
 
 }

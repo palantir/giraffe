@@ -19,54 +19,56 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
-import java.nio.file.FileSystem;
 import java.nio.file.Files;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
 import org.junit.Test;
 
-import com.palantir.giraffe.SystemConverter;
+import com.palantir.giraffe.SystemUpgrader;
 import com.palantir.giraffe.command.Command;
 import com.palantir.giraffe.command.Commands;
+import com.palantir.giraffe.command.ExecutionSystem;
 import com.palantir.giraffe.command.test.ExecutionSystemBaseTest;
 import com.palantir.giraffe.command.test.runner.ExecutionSystemTestRule;
 import com.palantir.giraffe.file.MoreFiles;
+import com.palantir.giraffe.host.HostControlSystem;
 
 /**
  * Tests that SSH execution systems can be converted to file systems.
  *
  * @author bkeyes
  */
-public class ExecutionSystemConversionTest extends ExecutionSystemBaseTest {
+public class ExecutionSystemUpgradeTest extends ExecutionSystemBaseTest {
 
     private static final String PRINTF_DATA = "giraffe";
 
-    public ExecutionSystemConversionTest(ExecutionSystemTestRule esRule) {
+    public ExecutionSystemUpgradeTest(ExecutionSystemTestRule esRule) {
         super(esRule);
     }
 
     @Test
-    public void createsFileSystem() throws IOException {
+    public void createsHostControlSystem() throws IOException {
         Command command = getSystemCommand("pwd");
-        try (FileSystem fs = SystemConverter.asFileSystem(command)) {
-            assertTrue("file system is not open", fs.isOpen());
+        try (HostControlSystem hcs = SystemUpgrader.upgrade(command.getExecutionSystem())) {
+            assertTrue("file system is not open", hcs.getFileSystem().isOpen());
 
             // ignore result, as long as this does not fail
-            Files.exists(MoreFiles.defaultDirectory(fs));
+            Files.exists(MoreFiles.defaultDirectory(hcs.getFileSystem()));
         }
     }
 
     @Test
     public void systemIsIndependent() throws IOException, TimeoutException {
         Command printf = getSystemCommand("printf", "%s", PRINTF_DATA);
+        ExecutionSystem es = printf.getExecutionSystem();
 
-        assertTrue("execution system is not open", printf.getExecutionSystem().isOpen());
+        assertTrue("execution system is not open", es.isOpen());
         assertEquals("incorrect output", PRINTF_DATA, getOutput(printf));
 
-        SystemConverter.asFileSystem(printf).close();
+        SystemUpgrader.upgrade(es).close();
 
-        assertTrue("execution system is not open", printf.getExecutionSystem().isOpen());
+        assertTrue("execution system is not open", es.isOpen());
         assertEquals("incorrect output", PRINTF_DATA, getOutput(printf));
     }
 

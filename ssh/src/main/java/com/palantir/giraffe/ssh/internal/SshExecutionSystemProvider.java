@@ -29,20 +29,12 @@ import com.palantir.giraffe.command.ExecutionSystem;
 import com.palantir.giraffe.command.ExecutionSystemNotFoundException;
 import com.palantir.giraffe.command.spi.ExecutionSystemProvider;
 
-import net.schmizz.sshj.DefaultConfig;
-
 /**
  * Provides access to remote execution systems using SSH.
  *
  * @author bkeyes
  */
 public final class SshExecutionSystemProvider extends ExecutionSystemProvider {
-
-    private final SshConnectionFactory connectionFactory;
-
-    public SshExecutionSystemProvider() {
-        connectionFactory = new SshConnectionFactory(new DefaultConfig());
-    }
 
     @Override
     public String getScheme() {
@@ -52,10 +44,17 @@ public final class SshExecutionSystemProvider extends ExecutionSystemProvider {
     @Override
     public ExecutionSystem newExecutionSystem(URI uri, Map<String, ?> env) throws IOException {
         SshUris.checkExecUri(uri);
-
         InternalSshSystemRequest request = new InternalSshSystemRequest(uri, env);
-        request.setClientIfMissing(connectionFactory);
-        return new SshExecutionSystem(this, request);
+        if (request.isInsternalSource()) {
+            // this is being requested as part of HostControlSystem creation
+            return new SshExecutionSystem(this, request);
+        } else {
+            return SshHostControlSystem.builder(request)
+                    .setFileSystem()
+                    .setExecutionSystem(this)
+                    .build()
+                    .getExecutionSystem();
+        }
     }
 
     @Override
