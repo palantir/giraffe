@@ -40,6 +40,8 @@ import org.apache.sshd.server.sftp.SftpSubsystem;
 import org.apache.sshd.server.shell.ProcessShellFactory;
 
 import com.palantir.giraffe.host.Host;
+import com.palantir.giraffe.ssh.PasswordSshCredential;
+import com.palantir.giraffe.ssh.SshCredential;
 import com.palantir.giraffe.ssh.SshHostAccessor;
 
 /**
@@ -126,8 +128,8 @@ public class MinaTestServer {
     }
 
     public SshHostAccessor getHost() {
-        char[] password = PASSWORD.toCharArray();
-        return SshHostAccessor.authWithPassword(Host.localhost(), USERNAME, port, password);
+        SshCredential credential = PasswordSshCredential.of(USERNAME, PASSWORD);
+        return SshHostAccessor.forCredential(Host.localhost(), port, credential);
     }
 
 }

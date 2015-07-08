@@ -17,7 +17,6 @@ package com.palantir.giraffe.ssh;
 
 import java.io.IOException;
 import java.net.URI;
-import java.nio.file.Files;
 import java.nio.file.Path;
 
 import com.palantir.giraffe.host.AuthenticatedHostAccessor;
@@ -35,48 +34,79 @@ public final class SshHostAccessor implements AuthenticatedHostAccessor<SshCrede
 
     private static final int DEFAULT_PORT = 22;
 
-    public static SshHostAccessor authWithPassword(Host host, String username, String password) {
-        return authWithCredential(host, new PasswordCredential(username, password.toCharArray()));
+    /**
+     * Returns a new {@code SshHostAccessor} that authenticates using the given password.
+     *
+     * @param hostname the name of the host to access
+     * @param username the user to authenticate as
+     * @param password the user's password
+     */
+    public static SshHostAccessor forPassword(String hostname, String username, String password) {
+        Host host = Host.fromHostname(hostname);
+        return forCredential(host, PasswordSshCredential.of(username, password));
     }
 
-    public static SshHostAccessor authWithPassword(Host host, String username, char[] password) {
-        return authWithCredential(host, new PasswordCredential(username, password));
+    /**
+     * Returns a new {@code SshHostAccessor} that authenticates using the given password.
+     *
+     * @param hostname the name of the host to access
+     * @param username the user to authenticate as
+     * @param password the user's password
+     */
+    public static SshHostAccessor forPassword(String hostname, String username, char[] password) {
+        Host host = Host.fromHostname(hostname);
+        return forCredential(host, PasswordSshCredential.of(username, password));
     }
 
-    public static SshHostAccessor authWithPassword(Host host, String username, int port,
-            char[] password) {
-        return authWithCredential(host, port, new PasswordCredential(username, password));
-    }
-
-    public static SshHostAccessor authWithKey(Host host, String username, Path privateKeyPath)
+    /**
+     * Returns a new {@code SshHostAccessor} that authenticates using the given
+     * private key.
+     *
+     * @param hostname the name of the host to access
+     * @param username the user to authenticate as
+     * @param keyFile the private key file; the matching public key must be
+     *        present on the server
+     */
+    public static SshHostAccessor forKey(String hostname, String username, Path keyFile)
             throws IOException {
-        return authWithCredential(host, readKey(username, privateKeyPath));
+        Host host = Host.fromHostname(hostname);
+        return forCredential(host, PublicKeySshCredential.fromFile(username, keyFile));
     }
 
-    public static SshHostAccessor authWithKey(Host host, String username, int port,
-            Path privateKeyPath) throws IOException {
-        return authWithCredential(host, port, readKey(username, privateKeyPath));
+    /**
+     * Returns a new {@code SshHostAccessor} that authenticates using the given
+     * private key.
+     *
+     * @param hostname the name of the host to access
+     * @param username the user to authenticate as
+     * @param privateKey the private key; the matching public key must be
+     *        present on the server
+     */
+    public static SshHostAccessor forKey(String hostname, String username, String privateKey) {
+        Host host = Host.fromHostname(hostname);
+        return forCredential(host, PublicKeySshCredential.of(username, privateKey));
     }
 
-    private static PublicKeyCredential readKey(String username, Path file) throws IOException {
-        return new PublicKeyCredential(username, Files.readAllBytes(file), file);
+    /**
+     * Returns a new {@code SshHostAccessor} that authenticates using the given
+     * {@link SshCredential}.
+     *
+     * @param host the host to access
+     * @param credential the credential to use for authentication
+     */
+    public static SshHostAccessor forCredential(Host host, SshCredential credential) {
+        return forCredential(host, DEFAULT_PORT, credential);
     }
 
-    public static SshHostAccessor authWithKey(Host host, String username, byte[] privateKey) {
-        return authWithCredential(host, new PublicKeyCredential(username, privateKey));
-    }
-
-    public static SshHostAccessor authWithKey(Host host, String username, int port,
-            byte[] privateKey) {
-        return authWithCredential(host, port, new PublicKeyCredential(username, privateKey));
-    }
-
-    public static SshHostAccessor authWithCredential(Host host, SshCredential credential) {
-        return authWithCredential(host, DEFAULT_PORT, credential);
-    }
-
-    public static SshHostAccessor authWithCredential(Host host, int port,
-            SshCredential credential) {
+    /**
+     * Returns a new {@code SshHostAccessor} that authenticates using the given
+     * {@link SshCredential} on the given port.
+     *
+     * @param host the host to access
+     * @param port the port that SSH is listening on
+     * @param credential the credential to use for authentication
+     */
+    public static SshHostAccessor forCredential(Host host, int port, SshCredential credential) {
         URI uri = SshUris.getHostUri(host, port, credential);
         return new SshHostAccessor(new SshSystemRequest(uri, credential));
     }
