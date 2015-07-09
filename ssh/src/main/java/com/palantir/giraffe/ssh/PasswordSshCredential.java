@@ -22,11 +22,19 @@ import java.io.IOException;
  *
  * @author bkeyes
  */
-public final class PasswordCredential extends SshCredential {
+public final class PasswordSshCredential extends SshCredential {
+
+    public static PasswordSshCredential of(String username, String password) {
+        return new PasswordSshCredential(username, password.toCharArray());
+    }
+
+    public static PasswordSshCredential of(String username, char[] password) {
+        return new PasswordSshCredential(username, password);
+    }
 
     private final char[] password;
 
-    public PasswordCredential(String username, char[] password) {
+    private PasswordSshCredential(String username, char[] password) {
         super(username);
         this.password = password.clone();
     }

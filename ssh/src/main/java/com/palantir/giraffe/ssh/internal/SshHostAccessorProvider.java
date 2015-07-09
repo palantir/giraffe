@@ -50,7 +50,7 @@ public class SshHostAccessorProvider extends HostAccessorProvider {
         int port = sshRequest.getPort();
         SshCredential credential = sshRequest.getCredential();
 
-        return SshHostAccessor.authWithCredential(host, port, credential);
+        return SshHostAccessor.forCredential(host, port, credential);
     }
 
 }

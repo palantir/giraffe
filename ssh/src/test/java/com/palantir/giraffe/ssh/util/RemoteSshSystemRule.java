@@ -21,7 +21,6 @@ import java.nio.file.Paths;
 
 import org.junit.rules.ExternalResource;
 
-import com.palantir.giraffe.host.Host;
 import com.palantir.giraffe.host.HostControlSystem;
 import com.palantir.giraffe.ssh.SshHostAccessor;
 import com.palantir.giraffe.test.runner.SystemTestRule;
@@ -65,9 +64,7 @@ class RemoteSshSystemRule extends ExternalResource implements SystemTestRule {
 
         String username = hostSpec.substring(0, sep);
         String hostname = hostSpec.substring(sep + 1);
-        return SshHostAccessor.authWithKey(
-                Host.fromHostname(hostname),
-                username, Paths.get(keyPath));
+        return SshHostAccessor.forKey(hostname, username, Paths.get(keyPath));
     }
 
     @Override
