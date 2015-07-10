@@ -5,10 +5,9 @@ a code, .rst-content a tt {
     padding: 0;
 }
 
-.giraffe-logo {
-    width: 20%;
-    margin: 24px;
-    float: right;
+div.tip {
+    background-color: #efe;
+    border-color: #cdc;
 }
 
 .epigraph {

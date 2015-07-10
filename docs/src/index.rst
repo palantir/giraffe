@@ -1,70 +1,66 @@
-.. image:: logo.svg
-   :alt: The Giraffe logo, a Giraffe wearing glasses
-   :class: giraffe-logo
+*******
+Giraffe
+*******
 
-*****************
-Giraffe |version|
-*****************
+This is the documentation for version |release| of Giraffe. For older or newer
+versions, see the `main site`_.
 
-Gracefully Integrated Remote Access For Files and Execution
+.. _main site: http://palantir.github.io/giraffe/
 
-.. epigraph::
-   A long neck to reach far-away places
+Installing
+==========
+
+Giraffe is published as a Maven-style artifact, but we recommend using
+Gradle_ for builds::
+
+    repositories {
+        mavenCentral()
+        maven {
+            url 'http://dl.bintray.com/palantir/releases'
+        }
+    }
+
+    dependencies {
+        compile 'com.palantir.giraffe:giraffe-core:0.6.0'
+        compile 'com.palantir.giraffe:giraffe-ssh:0.6.0'
+    }
+
+.. _Gradle: https://gradle.org/
 
 Overview
 ========
 
-Giraffe is a Java library that integrates local and remote file system access
-with command execution behind a common, familiar API. It combines new classes
-for command execution with remote implementations of the ``java.nio.file`` API
-introduced in Java 7.
+New users or users looking for a summary of functionality should read
+:doc:`guide`. This will enable you to start writing code that uses Giraffe and
+give you the background assumed by the rest of the documentation.
 
-Giraffe makes it easy to write code that works with both local and remote
-hosts::
+.. toctree::
+   :maxdepth: 2
 
-    void configureAndStartServer(Path serverRoot, ExecutionSystem es) {
-        Files.copy(Paths.get("server.yaml"), serverRoot.resolve("server.yaml"));
-        Files.copy(Paths.get("db.yaml"), serverRoot.resolve("db.yaml"));
-
-        Commands.execute(es.getCommand(serverRoot.resolve("bin/start.sh"), 8080)):
-    }
-
-    // local
-    configureAndStartServer(Paths.get("/opt/share/gazelle"), ExecutionSystems.getDefault());
-
-    // remote
-    Host host = Host.fromHostname("gazelle.example.com");
-    SshHostAccessor ssh = SshHostAccessor.authWithKey(host, "admin", Paths.get("/home/admin/.ssh/id_rsa"));
-    try (HostControlSystem hcs = ssh.open()) {
-        configureAndStartServer(hcs.getPath("/opt/gazelle"), hcs.getExecutionSystem());
-    }
-
-Get Giraffe
-===========
-
-For **Gradle** projects, add the following dependencies::
-
-    dependencies {
-       compile 'com.palantir.giraffe:giraffe-core:0.6.0'
-       compile 'com.palantir.giraffe:giraffe-ssh:0.6.0'
-    }
+   guide
 
 Learn More
 ==========
 
-* Javadoc_ - API documentation
-* :doc:`guide` - an introduction to the major features and how to use them
-* :doc:`effective_giraffe` - a discussion of best practices and antipatterns
-* :doc:`public_api` - describes how the API relates to the version number
-* :doc:`changelog` - release history and changelog
+For details on best practices and anti-patterns, see :doc:`effective_giraffe`.
+For low-level details, see the full `API documentation`_.
 
-.. _Javadoc: api/index.html
+.. toctree::
+   :maxdepth: 2
+
+   effective_giraffe
+   public_api
+
+.. _API documentation: api/index.html
+
+Release History
+===============
+
+The list of changes in this release and all previous releases can be found in
+the :doc:`changelog`.
 
 .. toctree::
    :hidden:
    :maxdepth: 2
 
-   guide
-   effective_giraffe
-   public_api
    changelog
