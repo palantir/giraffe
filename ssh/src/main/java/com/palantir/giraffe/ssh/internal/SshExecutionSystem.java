@@ -107,6 +107,8 @@ final class SshExecutionSystem extends ExecutionSystem implements HostControlSys
     }
 
     protected CommandFuture execute(SshCommand command, CommandContext context) {
+        checkOpen();
+
         CommandFutureTask future = newFutureTask(command, context);
         executor.execute(future);
         return future;
