@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 
 import os
-import sys
-import subprocess
 
 from datetime import datetime
 
@@ -11,16 +9,12 @@ import javalink
 # -- General configuration ------------------------------------------------
 # See http://sphinx-doc.org/config.html for details
 
-def get_version():
-    cwd = os.path.abspath(os.path.join('..', '..'))
-    return subprocess.check_output(['./gradlew', '-q', ':printVersion'], cwd=cwd)
-
 extensions = ['javalink']
 
 project = u'Giraffe'
 copyright = u'{}, Palantir Technologies'.format(datetime.now().year)
 
-release = get_version()
+release = os.environ.get('GIRAFFE_VERSION', 'unknown')
 if '-' in release:
     version = release.split('-')[0]
 else:
