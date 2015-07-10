@@ -16,29 +16,30 @@
 package com.palantir.giraffe.command;
 
 import java.net.URI;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.TimeoutException;
 
 import com.google.common.collect.ImmutableList;
 
 /**
- * Runtime exception thrown when a command fails, usually by exiting with a
- * non-zero exit status.
+ * Checked exception thrown when the timeout for a command is exceeded.
  * <p>
  * The {@linkplain #getMessage() message} contains detailed information about
  * the command that ran, the execution system that ran it, and the output of the
- * command. This information is also available programmatically via getter
- * methods.
+ * command until the timeout. This information is also available
+ * programmatically via getter methods.
  *
  * @author bkeyes
  */
-public class CommandException extends RuntimeException {
+public class CommandTimeoutException extends TimeoutException {
 
     private final String executable;
     private final ImmutableList<String> args;
     private final URI uri;
     private final CommandResult result;
 
-    public CommandException(TerminatedCommand failed) {
-        super(CommandExceptionMessage.forExitStatus(failed));
+    public CommandTimeoutException(TerminatedCommand failed, long timeout, TimeUnit unit) {
+        super(CommandExceptionMessage.forTimeout(failed, timeout, unit));
 
         this.executable = failed.command.getExecutable();
         this.args = failed.command.getArguments();
@@ -68,18 +69,18 @@ public class CommandException extends RuntimeException {
     }
 
     /**
-     * Returns the result of executing the command.
+     * Returns the result of executing the command until the timeout. The exit
+     * status of the result is invalid.
      */
     public CommandResult getResult() {
         return result;
     }
 
     /**
-     * Returns a description of the executed command and how it failed.
+     * Returns a description of the executed command until the time out.
      * <p>
      * The description spans multiple lines and includes the:
      * <ul>
-     * <li>Exit status</li>
      * <li>Executable name or path</li>
      * <li>Argument list, with each argument surrounded by double quotes</li>
      * <li>Working directory, if not the default</li>
@@ -95,5 +96,5 @@ public class CommandException extends RuntimeException {
         return super.getMessage();
     }
 
-    private static final long serialVersionUID = 2L;
+    private static final long serialVersionUID = 8500371075158170387L;
 }

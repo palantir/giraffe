@@ -27,6 +27,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -135,8 +136,8 @@ public final class Commands {
     }
 
     /**
-     * Synchronously executes a command with the default context and the
-     * given timeout.
+     * Synchronously executes a command with the default context and the given
+     * timeout.
      *
      * @param command the command to execute
      * @param timeout the maximum time to wait for the command to terminate
@@ -146,15 +147,13 @@ public final class Commands {
      *
      * @throws CommandException if the command exits with a non-zero status
      * @throws IOException if an I/O error occurs while executing the command
-     * @throws TimeoutException if the timeout is reached before the command
-     *         terminates
+     * @throws CommandTimeoutException if the timeout is reached before the
+     *         command terminates
      *
      * @see #execute(Command, CommandContext, long, TimeUnit)
      */
-    public static CommandResult execute(
-            Command command,
-            long timeout,
-            TimeUnit timeUnit) throws IOException, TimeoutException {
+    public static CommandResult execute(Command command, long timeout, TimeUnit timeUnit)
+            throws IOException, CommandTimeoutException {
         return execute(command, CommandContext.defaultContext(), timeout, timeUnit);
     }
 
@@ -168,27 +167,30 @@ public final class Commands {
      * @param command the command to execute
      * @param context the {@link CommandContext}
      * @param timeout the maximum time to wait for the command to terminate
-     * @param timeUnit the unit of the timeout argument
+     * @param unit the unit of the timeout argument
      *
      * @return the {@linkplain CommandResult result} of executing the command
      *
      * @throws CommandException if the command exits with a status other than
      *         that specified by the {@link CommandContext}
      * @throws IOException if an I/O error occurs while executing the command
-     * @throws TimeoutException if the timeout is reached before the command
-     *         terminates
+     * @throws CommandTimeoutException if the timeout is reached before the
+     *         command terminates
      */
-    public static CommandResult execute(
-            Command command,
-            CommandContext context,
-            long timeout,
-            TimeUnit timeUnit) throws IOException, TimeoutException {
-        checkNotNull(command);
-        checkNotNull(context);
+    public static CommandResult execute(Command command, CommandContext context,
+            long timeout, TimeUnit unit) throws IOException, CommandTimeoutException {
+        checkNotNull(command, "command must be non-null");
+        checkNotNull(context, "context must be non-null");
         checkArgument(timeout >= 0, "timeout must be non-negative.");
-        checkNotNull(timeUnit);
+        checkNotNull(unit, "unit must be non-null");
 
-        return waitFor(executeAsync(command, context), timeout, timeUnit);
+        CommandFuture future = executeAsync(command, context);
+        try {
+            return waitFor(future, timeout, unit);
+        } catch (TimeoutException e) {
+            TerminatedCommand failed = new TerminatedCommand(command, context, toResult(future));
+            throw new CommandTimeoutException(failed, timeout, unit);
+        }
     }
 
     /**
@@ -325,7 +327,10 @@ public final class Commands {
     public static CommandResult toResult(CommandFuture future, int exitStatus) throws IOException {
         try {
             return future.get(0, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException ignored) {
+        } catch (InterruptedException
+                | ExecutionException
+                | TimeoutException
+                | CancellationException ignored) {
             // ignore, create result using the streams
         }
 
