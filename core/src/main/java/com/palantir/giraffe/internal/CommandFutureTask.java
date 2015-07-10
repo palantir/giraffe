@@ -29,6 +29,7 @@ import com.palantir.giraffe.command.CommandContext;
 import com.palantir.giraffe.command.CommandException;
 import com.palantir.giraffe.command.CommandFuture;
 import com.palantir.giraffe.command.CommandResult;
+import com.palantir.giraffe.command.TerminatedCommand;
 
 /**
  * An abstract runnable {@link CommandFuture}. Subclasses must implement
@@ -103,7 +104,8 @@ public abstract class CommandFutureTask extends AbstractFuture<CommandResult>
             if (context.getExitStatusVerifier().apply(exitStatus)) {
                 set(result);
             } else {
-                setException(new CommandException(command, context, result));
+                TerminatedCommand failed = new TerminatedCommand(command, context, result);
+                setException(new CommandException(failed));
             }
         } catch (InterruptedException e) {
             destroyProcess();

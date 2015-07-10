@@ -24,8 +24,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -41,6 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.palantir.giraffe.command.spi.ExecutionSystemProvider;
 
 /**
@@ -62,7 +65,9 @@ public class CommandsTest {
 
     @Before
     public void setup() {
-        commandFuture = new MockCommandFuture(null, null, null);
+        InputStream stdout = new ByteArrayInputStream("stdout".getBytes(StandardCharsets.UTF_8));
+        InputStream stderr = new ByteArrayInputStream("stderr".getBytes(StandardCharsets.UTF_8));
+        commandFuture = new MockCommandFuture(stdout, stderr, null);
 
         commandContext = CommandContext.defaultContext();
         command = newMockCommand(commandContext, commandFuture);
@@ -318,6 +323,9 @@ public class CommandsTest {
         ExecutionSystemProvider provider = mock(ExecutionSystemProvider.class);
 
         when(c.getExecutionSystem()).thenReturn(es);
+        when(c.getExecutable()).thenReturn("mock");
+        when(c.getArguments()).thenReturn(ImmutableList.<String>of());
+
         when(es.provider()).thenReturn(provider);
         when(provider.execute(c, context)).thenReturn(future);
         return c;
