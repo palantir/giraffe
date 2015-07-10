@@ -72,6 +72,11 @@ public interface HostControlSystem extends Closeable {
     Host getHost();
 
     /**
+     * Returns the name of the host controlled by this system.
+     */
+    String getHostname();
+
+    /**
      * Returns this system's URI.
      */
     URI uri();

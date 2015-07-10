@@ -81,6 +81,11 @@ public abstract class AbstractHostControlSystem implements HostControlSystem {
     }
 
     @Override
+    public final String getHostname() {
+        return host.getHostname();
+    }
+
+    @Override
     public final URI uri() {
         return uri;
     }
