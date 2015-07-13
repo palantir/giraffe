@@ -3,7 +3,7 @@ Giraffe Basics
 **************
 
 This guide covers the basic features of Giraffe and is a good introduction for
-new users. For advanced topics and more details, see :doc:`effective_giraffe`.
+new users.
 
 .. javaimport::
    java.nio.file.*
@@ -117,12 +117,3 @@ exit with a different status. To change this behavior, use a method that takes
 a ``CommandContext``, setting it to ignore the exit status or check for a
 different condition.
 
-Executing Interactive Commands
-==============================
-
-TODO
-
-Remote Systems
-==============
-
-TODO

@@ -1,9 +1,12 @@
-<img src="docs/src/logo.png?raw=true" alt="The Giraffe logo, a giraffe wearing glasses" width="160" height ="160"/>
+<img src="docs/src/static/logo.png?raw=true" alt="The Giraffe logo, a giraffe wearing glasses" width="120" height ="120"/>
 
 # Giraffe
 
 Gracefully Integrated Remote Access For Files and Execution
 > A long neck to reach far-away places
+
+- [Home](http://github.palantir.io/giraffe/)
+- [Documentation](http://github.palantir.io/giraffe/docs/0.6.0/)
 
 ## Overview
 
@@ -14,7 +17,7 @@ introduced in Java 7.
 
 ```java
 Host example = Host.fromHostname("example.com");
-SshHostAccessor ssh = SshHostAccessor.authWithPassword(example, "giraffe", "l0ngN3ck");
+SshHostAccessor ssh = SshHostAccessor.forPassword(example, "giraffe", "l0ngN3ck");
 
 try (HostControlSystem hcs = ssh.open()) {
     Path logs = hcs.getPath("server/logs");

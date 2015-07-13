@@ -2,7 +2,6 @@
 
 import os
 import sys
-import subprocess
 
 from datetime import datetime
 
@@ -11,16 +10,13 @@ import javalink
 # -- General configuration ------------------------------------------------
 # See http://sphinx-doc.org/config.html for details
 
-def get_version():
-    cwd = os.path.abspath(os.path.join('..', '..'))
-    return subprocess.check_output(['./gradlew', '-q', ':printVersion'], cwd=cwd)
-
-extensions = ['javalink']
+sys.path.append(os.path.dirname(os.path.realpath(__file__)))
+extensions = ['javalink', 'gh-pages']
 
 project = u'Giraffe'
 copyright = u'{}, Palantir Technologies'.format(datetime.now().year)
 
-release = get_version()
+release = os.environ.get('GIRAFFE_VERSION', 'unknown')
 if '-' in release:
     version = release.split('-')[0]
 else:
@@ -55,4 +51,24 @@ javalink_add_package_names = False
 # See http://sphinx-doc.org/config.html#html-options for details
 
 html_static_path = ['static']
-html_theme = 'sphinx_rtd_theme'
+html_show_sourcelink = False
+html_theme = 'alabaster'
+html_theme_options = {
+    'logo': 'logo.png',
+    'logo_name': True,
+    'logo_text_align': 'center',
+    'github_button': False,
+    'extra_nav_links': {
+        'Main Page': 'http://palantir.github.io/giraffe/',
+        'GitHub': 'https://github.com/palantir/giraffe'
+    },
+    'page_width': '90%',
+    'sidebar_width': '230px'
+}
+html_sidebars = {
+    '**': [
+        'about.html',
+        'navigation.html',
+        'searchbox.html'
+    ]
+}

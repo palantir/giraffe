@@ -10,7 +10,7 @@ buildscript {
     }
 
     dependencies {
-        classpath 'com.palantir:gradle-flexversion:0.4.0'
+        classpath 'com.palantir:gradle-flexversion:0.7.0'
         classpath 'com.palantir:jacoco-coverage:0.1.4'
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.11.0'
     }
@@ -19,6 +19,7 @@ buildscript {
 apply plugin: 'gradle-flexversion'
 apply from: 'gradle/versions.gradle'
 
+addPrintVersionTask()
 flexversion {
     envvarSources << 'TRAVIS_BRANCH'
     useTags = true
