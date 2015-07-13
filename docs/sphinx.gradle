@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    virtualenv 'virtualenv:virtualenv:12.0.7@tar.gz'
+    virtualenv 'virtualenv:virtualenv:13.0.3@tar.gz'
 }
 
 task installVirtualenv(type: Copy) {
@@ -57,13 +57,17 @@ task installPackages(type: Exec, dependsOn: sphinxEnv) {
 }
 
 task copyJavadoc(type: Copy) {
-    from javadoc.destinationDir
+    from javadoc
     into new File(sphinxBuildDir, 'api')
 }
 
 task htmldoc(type: Exec, dependsOn: [installPackages, javadoc, copyJavadoc]) {
+    ext.docsVersion = System.env.GIRAFFE_VERSION ?: (project.version as String)
+
     inputs.sourceDir 'src'
+    inputs.property 'docsVersion', docsVersion
     outputs.dir sphinxBuildDir
 
+    environment 'GIRAFFE_VERSION', docsVersion
     commandLine sphinxBinary, '-b', 'html', 'src', sphinxBuildDir
 }

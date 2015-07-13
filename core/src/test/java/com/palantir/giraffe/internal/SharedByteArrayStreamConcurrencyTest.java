@@ -1,3 +1,18 @@
+/**
+ * Copyright 2015 Palantir Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.palantir.giraffe.internal;
 
 import static org.junit.Assert.assertArrayEquals;
@@ -30,17 +45,17 @@ import com.palantir.giraffe.internal.SharedByteArrayStream.SharedOutputStream;
 public class SharedByteArrayStreamConcurrencyTest {
 
     /**
-     * Number of test iterations
+     * Number of test iterations.
      */
     private static final int ITERATIONS = 15;
 
     /**
-     * Amount of data to read/write in each iteration
+     * Amount of data to read/write in each iteration.
      */
     private static final int DATA_SIZE = 8192;
 
     /**
-     * Number of chunks to split data into for writing
+     * Number of chunks to split data into for writing.
      */
     private static final int DATA_CHUNKS = 64;
 
@@ -65,33 +80,32 @@ public class SharedByteArrayStreamConcurrencyTest {
     @Test
     public void concurrentReadAndWrite() throws InterruptedException {
         for (int i = 0; i < ITERATIONS; i++) {
-            try (SharedByteArrayStream stream = new SharedByteArrayStream()) {
-                SharedInputStream is = stream.getInputStream();
-                SharedOutputStream os = stream.getOutputStream();
+            SharedByteArrayStream stream = new SharedByteArrayStream();
+            SharedInputStream is = stream.getInputStream();
+            SharedOutputStream os = stream.getOutputStream();
 
-                Future<byte[]> writeFuture = executor.submit(new WriteAction(os));
-                Future<byte[]> readFuture = executor.submit(new ReadAction(is));
+            Future<byte[]> writeFuture = executor.submit(new WriteAction(os));
+            Future<byte[]> readFuture = executor.submit(new ReadAction(is));
 
-                byte[] expected = null;
-                try {
-                    expected = writeFuture.get(30, TimeUnit.SECONDS);
-                } catch (ExecutionException e) {
-                    throw new AssertionError("unexpected exception", e.getCause());
-                } catch (TimeoutException e) {
-                    fail("timeout waiting for write action");
-                }
-
-                byte[] actual = null;
-                try {
-                    actual = readFuture.get(10, TimeUnit.SECONDS);
-                } catch (ExecutionException e) {
-                    throw new AssertionError("unexpected exception", e.getCause());
-                } catch (TimeoutException e) {
-                    fail("timeout waiting for read action");
-                }
-
-                assertArrayEquals("incorrect data", expected, actual);
+            byte[] expected = null;
+            try {
+                expected = writeFuture.get(30, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                throw new AssertionError("unexpected exception", e.getCause());
+            } catch (TimeoutException e) {
+                fail("timeout waiting for write action");
             }
+
+            byte[] actual = null;
+            try {
+                actual = readFuture.get(10, TimeUnit.SECONDS);
+            } catch (ExecutionException e) {
+                throw new AssertionError("unexpected exception", e.getCause());
+            } catch (TimeoutException e) {
+                fail("timeout waiting for read action");
+            }
+
+            assertArrayEquals("incorrect data", expected, actual);
         }
     }
 

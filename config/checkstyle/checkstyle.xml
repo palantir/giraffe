@@ -156,6 +156,17 @@ page at http://checkstyle.sourceforge.net/config.html -->
     <module name="GenericWhitespace"/>
     <module name="Indentation">
         <property name="throwsIndent" value="8"/>
+
+        <!--
+            With the default of 4, the following nice pattern doesn't work:
+            (added in checkstyle 5.9)
+
+            @SuiteClasses({
+                Foo.class,
+                Bar.class
+            })  // violation, continutation line not indented
+        -->
+        <property name="lineWrappingIndentation" value="0"/>
     </module>
     <module name="WhitespaceAfter"/>
     <module name="WhitespaceAround">

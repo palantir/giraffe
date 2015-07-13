@@ -1,3 +1,18 @@
+/**
+ * Copyright 2015 Palantir Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.palantir.giraffe.command;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -12,6 +27,7 @@ import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.concurrent.CancellationException;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
@@ -83,17 +99,13 @@ public final class Commands {
     }
 
     /**
-     * Executes a command with the default context, throwing an exception if the
-     * exit status is non-zero.
+     * Synchronously executes a command with the default context.
      *
      * @param command the command to execute
      *
      * @return the {@linkplain CommandResult result} of executing the command
      *
-     * @throws CommandException if the command exits with a status other than
-     *         that specified by the {@link CommandContext}
-     * @throws ClosedExecutionSystemException if the command's execution system
-     *         is closed before or during execution
+     * @throws CommandException if the command exits with non-zero status
      * @throws IOException if an I/O error occurs while executing the command
      *
      * @see #execute(Command, CommandContext)
@@ -103,13 +115,9 @@ public final class Commands {
     }
 
     /**
-     * Executes a command with the specified context, throwing an exception if
-     * the exit status is non-zero. This method blocks until the command exits
-     * or the timeout is reached.
+     * Synchronously executes a command with the specified context.
      * <p>
-     * If a command's execution system is closed while it is executing, a
-     * best-effort attempt is made to terminate the command before throwing a
-     * {@code ClosedExecutionSystemException}.
+     * This method blocks until the command terminates.
      *
      * @param command the command to execute
      * @param context the {@link CommandContext}
@@ -118,8 +126,6 @@ public final class Commands {
      *
      * @throws CommandException if the command exits with a status other than
      *         that specified by the {@link CommandContext}
-     * @throws ClosedExecutionSystemException if the command's execution system
-     *         is closed before or during execution
      * @throws IOException if an I/O error occurs while executing the command
      */
     public static CommandResult execute(Command command, CommandContext context)
@@ -130,53 +136,61 @@ public final class Commands {
     }
 
     /**
+     * Synchronously executes a command with the default context and the given
+     * timeout.
+     *
      * @param command the command to execute
-     * @param timeout the maximum time to time
-     * @param timeUnit the time unit of the timout argument
+     * @param timeout the maximum time to wait for the command to terminate
+     * @param timeUnit the unit of the timeout argument
      *
      * @return the {@linkplain CommandResult result} of executing the command
      *
      * @throws CommandException if the command exits with a non-zero status
-     * @throws ClosedExecutionSystemException if the command's execution system
-     *         is closed before or during execution
      * @throws IOException if an I/O error occurs while executing the command
-     * @throws TimeoutException if the command times out; in this event, the
-     *         command execution will also be cancelled as best as possible
+     * @throws CommandTimeoutException if the timeout is reached before the
+     *         command terminates
+     *
+     * @see #execute(Command, CommandContext, long, TimeUnit)
      */
-    public static CommandResult execute(
-            Command command,
-            long timeout,
-            TimeUnit timeUnit) throws IOException, TimeoutException {
+    public static CommandResult execute(Command command, long timeout, TimeUnit timeUnit)
+            throws IOException, CommandTimeoutException {
         return execute(command, CommandContext.defaultContext(), timeout, timeUnit);
     }
 
     /**
+     * Synchronously executes a command with the given context and timeout.
+     * <p>
+     * This method blocks until the command terminates or the timeout is
+     * reached. When the timeout is reached, a best-effort attempt is made to
+     * cancel the command before throwing a {@code TimeoutException}.
+     *
      * @param command the command to execute
      * @param context the {@link CommandContext}
-     * @param timeout the maximum time to wait (must be at least 0)
-     * @param timeUnit the time unit of the timout argument
+     * @param timeout the maximum time to wait for the command to terminate
+     * @param unit the unit of the timeout argument
      *
      * @return the {@linkplain CommandResult result} of executing the command
      *
      * @throws CommandException if the command exits with a status other than
      *         that specified by the {@link CommandContext}
-     * @throws ClosedExecutionSystemException if the command's execution system
-     *         is closed before or during execution
      * @throws IOException if an I/O error occurs while executing the command
-     * @throws TimeoutException if the command times out; in this event, the
-     *         command execution will also be cancelled as best as possible
+     * @throws CommandTimeoutException if the timeout is reached before the
+     *         command terminates
      */
-    public static CommandResult execute(
-            Command command,
-            CommandContext context,
-            long timeout,
-            TimeUnit timeUnit) throws IOException, TimeoutException {
-        checkNotNull(command);
-        checkNotNull(context);
+    public static CommandResult execute(Command command, CommandContext context,
+            long timeout, TimeUnit unit) throws IOException, CommandTimeoutException {
+        checkNotNull(command, "command must be non-null");
+        checkNotNull(context, "context must be non-null");
         checkArgument(timeout >= 0, "timeout must be non-negative.");
-        checkNotNull(timeUnit);
+        checkNotNull(unit, "unit must be non-null");
 
-        return waitFor(executeAsync(command, context), timeout, timeUnit);
+        CommandFuture future = executeAsync(command, context);
+        try {
+            return waitFor(future, timeout, unit);
+        } catch (TimeoutException e) {
+            TerminatedCommand failed = new TerminatedCommand(command, context, toResult(future));
+            throw new CommandTimeoutException(failed, timeout, unit);
+        }
     }
 
     /**
@@ -193,14 +207,14 @@ public final class Commands {
     }
 
     /**
-     * Executes a command asynchronously with the specified context. This method
-     * return a {@link CommandFuture} which allows clients to wait for the
-     * command to finish and access the output streams while the command is in
+     * Executes a command asynchronously with the specified context. Returns a
+     * {@link CommandFuture} that allows clients to wait for the command to
+     * finish and access input and output streams while the command is in
      * progress.
      * <p>
      * Any errors encountered during execution are reported through the returned
-     * future. Execution is unverified, meaning the exit status of the command
-     * is not checked.
+     * future. This includes {@link CommandException}s caused by the
+     * context's exit status check.
      * <p>
      * If a command's execution system is closed while it is executing, a
      * best-effort attempt is made to terminate the command. If this occurs, the
@@ -220,8 +234,11 @@ public final class Commands {
     }
 
     /**
-     * Performs an uninterruptable block on the given {@code CommandFuture}
-     * waiting until it completes execution.
+     * Waits for the command associated with a {@code CommandFuture} to
+     * terminate.
+     * <p>
+     * This method is uninterruptible; to allow interruption, use
+     * {@link CommandFuture#get()}.
      *
      * @param future the {@link CommandFuture} to block on
      *
@@ -242,11 +259,13 @@ public final class Commands {
     }
 
     /**
-     * Performs an uninterruptable block on the given {@code CommandFuture}
-     * waiting until it completes execution or the timeout is reached.
+     * Waits for the command associated with a {@code CommandFuture} to
+     * terminate or the timeout to be reached. If the timeout is reached, a
+     * best-effort attempt is made to cancel the command before throwing a
+     * {@code TimeoutException}.
      * <p>
-     * If the timeout is reached, a best-effort attempt is made to cancel the
-     * process before throwing a {@code TimeoutException}.
+     * This method is uninterruptible; to allow interruption, use
+     * {@link CommandFuture#get(long, TimeUnit)}.
      *
      * @param future the {@link CommandFuture} to block on
      *
@@ -308,13 +327,25 @@ public final class Commands {
     public static CommandResult toResult(CommandFuture future, int exitStatus) throws IOException {
         try {
             return future.get(0, TimeUnit.MILLISECONDS);
-        } catch (InterruptedException | ExecutionException | TimeoutException ignored) {
+        } catch (InterruptedException
+                | ExecutionException
+                | TimeoutException
+                | CancellationException ignored) {
             // ignore, create result using the streams
         }
 
         String stdOut = readAvailable(future.getStdOut(), StandardCharsets.UTF_8);
         String stdErr = readAvailable(future.getStdErr(), StandardCharsets.UTF_8);
         return new CommandResult(exitStatus, stdOut, stdErr);
+    }
+
+    /**
+     * Determines if the given command is associated with the default (local) execution
+     * system.
+     */
+    public static boolean isLocal(Command command) {
+        checkNotNull(command, "command must be non-null");
+        return command.getExecutionSystem().equals(ExecutionSystems.getDefault());
     }
 
     private static String readAvailable(InputStream is, Charset cs) throws IOException {

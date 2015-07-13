@@ -1,6 +1,22 @@
+/**
+ * Copyright 2015 Palantir Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.palantir.giraffe.file;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkNotNull;
 
 import java.io.IOException;
 import java.io.Writer;
@@ -9,6 +25,7 @@ import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.NoSuchFileException;
@@ -42,20 +59,20 @@ import com.palantir.giraffe.file.base.feature.RecursivePermissions;
 public final class MoreFiles {
 
     private static final DirectoryStream.Filter<Path> FILE_FILTER =
-            new DirectoryStream.Filter<Path>() {
-                @Override
-                public boolean accept(Path entry) throws IOException {
-                    return Files.isRegularFile(entry);
-                }
-            };
+        new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path entry) throws IOException {
+                return Files.isRegularFile(entry);
+            }
+        };
 
     private static final DirectoryStream.Filter<Path> DIRECTORY_FILTER =
-            new DirectoryStream.Filter<Path>() {
-                @Override
-                public boolean accept(Path entry) throws IOException {
-                    return Files.isDirectory(entry);
-                }
-            };
+        new DirectoryStream.Filter<Path>() {
+            @Override
+            public boolean accept(Path entry) throws IOException {
+                return Files.isDirectory(entry);
+            }
+        };
 
     /**
      * Returns a directory filter that matches {@linkplain Files#isRegularFile
@@ -549,6 +566,15 @@ public final class MoreFiles {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directoryPath)) {
             return Lists.newArrayList(directoryStream);
         }
+    }
+
+    /**
+     * Determines if the given path is associated with the default (local) file
+     * system.
+     */
+    public static boolean isLocal(Path path) {
+        checkNotNull(path, "path must be non-null");
+        return path.getFileSystem().equals(FileSystems.getDefault());
     }
 
     private MoreFiles() {

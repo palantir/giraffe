@@ -27,8 +27,8 @@ range of applications, but means that clients are responsible for closing all
 connections that they open. Use the *try-with-resources* statement to simplify
 this::
 
-    SshHost<?> host = getHost();
-    try (HostControlSystem hcs = HostControlSystems.openRemote(host)) {
+    SshHostAccessor host = getHost();
+    try (HostControlSystem hcs = host.open()) {
         Files.copy(hcs.getPath("transformers.mp4"), hcs.getPath("transformers2.mp4"));
         // ...
     }
@@ -77,14 +77,14 @@ individual file and execution systems to abstract this difference::
     // custom host representation for both local and remote hosts
     interface MyHost {
         boolean isLocal();
-        SshHost<?> getSshHost();
+        SshHostAccessor getSshAccessor();
     }
 
     public HostControlSystem openSystem(MyHost host) throws IOException {
         if (host.isLocal()) {
-            return HostControlSystems.getDefault();
+            return HostAccessors.getDefault().open();
         } else {
-            return HostControlSystems.openRemote(host.getSshHost());
+            return host.getSshAccessor().open();
         }
     }
 
@@ -123,7 +123,7 @@ statement::
         // ...
     }
 
-    try (HostControlSystem hcs = HostControlSystems.openRemote(host)) {
+    try (HostControlSystem hcs = host.open()) {
         copyThings(hcs.getPath("things"));
         copyStuff(hcs.getPath("stuff"));
         startServer();
@@ -148,7 +148,7 @@ create *local* paths. These paths are *not* compatible with other file systems.
 In particular, avoid these patterns::
 
     Path local = Paths.get("docs/cheetah/running.txt");
-    try (HostControlSystem hcs = HostControlSystems.openRemote(remoteHost)) {
+    try (HostControlSystem hcs = remoteHost.open()) {
         Path remote = hcs.getPath("animals");
 
         // BAD - throws exception
@@ -161,7 +161,7 @@ In particular, avoid these patterns::
 Safely resolving a local path with a remote path requires more effort::
 
     Path local = Paths.get("docs/cheetah/running.txt");
-    try (HostControlSystem hcs = HostControlSystems.openRemote(remoteHost)) {
+    try (HostControlSystem hcs = remoteHost.open()) {
         Path remote = hcs.getPath("animals");
 
         Path target = remote;
@@ -197,6 +197,8 @@ than custom implementations of the same functionality.
 
 Command Execution
 =================
+
+.. _command-escaping:
 
 Don't escape arguments
 ----------------------

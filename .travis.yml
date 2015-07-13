@@ -1,0 +1,17 @@
+language: java
+jdk:
+- openjdk7
+cache:
+  directories:
+  - ".gradle"
+install: true
+script:
+- ./gradlew build publish --stacktrace --info
+deploy:
+  provider: releases
+  api_key:
+    secure: pZVEZWEPd5e83ZE8/h51PO2lYOyjQ2aLBfBEqJ0EJVkpvZPvw5Zs16J2w/PoZOP+K5nvO8bdLZft9mzzaOLl6tQi1acYJyoHgZ2MSpPdFN5MpkC6BOIZ9Ih2bPDKdRC3sHGlEu53RWZ3L7Ck2CxVKZKa/SZzBWZ16bGWZ8NgjII=
+  file: build/distributions/*
+  file_glob: true
+  on:
+    tags: true

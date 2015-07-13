@@ -1,3 +1,18 @@
+/**
+ * Copyright 2015 Palantir Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.palantir.giraffe.command;
 
 import static org.hamcrest.Matchers.sameInstance;
@@ -9,8 +24,10 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.concurrent.Callable;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutionException;
@@ -26,6 +43,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.palantir.giraffe.command.spi.ExecutionSystemProvider;
 
 /**
@@ -47,7 +65,9 @@ public class CommandsTest {
 
     @Before
     public void setup() {
-        commandFuture = new MockCommandFuture(null, null, null);
+        InputStream stdout = new ByteArrayInputStream("stdout".getBytes(StandardCharsets.UTF_8));
+        InputStream stderr = new ByteArrayInputStream("stderr".getBytes(StandardCharsets.UTF_8));
+        commandFuture = new MockCommandFuture(stdout, stderr, null);
 
         commandContext = CommandContext.defaultContext();
         command = newMockCommand(commandContext, commandFuture);
@@ -303,6 +323,9 @@ public class CommandsTest {
         ExecutionSystemProvider provider = mock(ExecutionSystemProvider.class);
 
         when(c.getExecutionSystem()).thenReturn(es);
+        when(c.getExecutable()).thenReturn("mock");
+        when(c.getArguments()).thenReturn(ImmutableList.<String>of());
+
         when(es.provider()).thenReturn(provider);
         when(provider.execute(c, context)).thenReturn(future);
         return c;

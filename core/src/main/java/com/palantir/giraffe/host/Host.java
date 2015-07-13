@@ -1,3 +1,18 @@
+/**
+ * Copyright 2015 Palantir Technologies, Inc.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.palantir.giraffe.host;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -53,7 +68,7 @@ public final class Host {
         private static Host getLocalhostInstance() {
             try {
                 InetAddress ia = InetAddress.getLocalHost();
-                return new Host(ia.getCanonicalHostName(), ia);
+                return new Host(ia.getCanonicalHostName());
             } catch (UnknownHostException e) {
                 // work around JDK-7180557 (Java 7 only)
                 // http://bugs.java.com/bugdatabase/view_bug.do?bug_id=7180557
@@ -74,12 +89,10 @@ public final class Host {
         }
     }
 
-    private final String hostname;
-    private volatile InetAddress cachedInetAddress;
-
     /**
-     * Creates a {@code Host} from a hostname, resolving it to an
-     * {@link InetAddress} then attempting to resolve the canonical name.
+     * Creates a {@code Host} from a valid hostname. The hostname is resolved to
+     * an {@code InetAddress}, which is used to
+     * {@linkplain #fromInetAddress(InetAddress) create the host}.
      *
      * @param name the hostname to resolve
      *
@@ -103,9 +116,7 @@ public final class Host {
      * <p>
      * If the URI's scheme {@linkplain #addLocalUriScheme(String) identifies}
      * resources on this host or if the host component is "localhost", returns
-     * the local host object. Otherwise, use the
-     * {@linkplain #fromHostnameUnresolved(String) unresolved} host component of
-     * the URI.
+     * the local host object. Otherwise, use the host component of the URI.
      *
      * @param uri the URI from which to extract the host
      *
@@ -135,15 +146,15 @@ public final class Host {
      * Gets the {@code Host} representing the local host.
      *
      * @throws InetAddressUnresolvableException if "localhost" cannot be
-     *         resolved to an externally visible hostname.
+     *         resolved
      */
     public static Host localhost() {
         return LocalHostHolder.localhost;
     }
 
     /**
-     * Creates a {@code Host} from an {@link InetAddress}, attempting to resolve
-     * the canonical host name.
+     * Creates a {@code Host} from an {@link InetAddress} using the saved or
+     * resolved {@link InetAddress#getHostName() hostname}.
      *
      * @param ia the {@code InetAddress}
      */
@@ -151,39 +162,38 @@ public final class Host {
         if (ia.isLoopbackAddress()) {
             return localhost();
         } else {
-            String hostname = ia.getCanonicalHostName();
+            String hostname = ia.getHostName();
             if (hostname.equals(LOCALHOST)) {
                 return localhost();
             } else {
-                return new Host(hostname, ia);
+                return new Host(hostname);
             }
         }
     }
 
     /**
-     * Creates a {@code Host} with the given hostname. No resolution, including
-     * <a href="#localhost-handling">local host resolution</a>, is performed and
-     * {@link #getHostname()} returns the given hostname.
+     * Creates a {@code Host} with the given literal hostname. This method does
+     * not perform <a href="#localhost-handling">localhost resolution</a> and
+     * {@link #getHostname()} always returns the given hostname.
      *
      * @param name the hostname
      */
     public static Host fromHostnameUnresolved(String name) {
-        // TODO(bkeyes): filter for permitted characters?
-        return new Host(name, null);
+        return new Host(name);
     }
 
-    private Host(String hostname, InetAddress inetAddress) {
+    private final String hostname;
+
+    private Host(String hostname) {
         this.hostname = checkNotNull(hostname, "hostname must be non-null");
         checkArgument(!hostname.isEmpty(), "hostname must not be empty");
-        this.cachedInetAddress = inetAddress;
     }
 
     /**
      * Returns the hostname of this host. The hostname is set at construction
-     * time and may not be in canonical form or refer to a valid host if this
-     * host was created using {@link #fromHostnameUnresolved(String)}.
+     * time and may not be in canonical form.
      *
-     * @see #getCanonicalHostName()
+     * @see #getCanonicalHostname()
      */
     public String getHostname() {
         return hostname;
@@ -191,17 +201,14 @@ public final class Host {
 
     /**
      * Resolves this host's {@linkplain #getHostname() hostname} to an IP
-     * address. Unlike {@code getInetAddress}, resolution is always performed
-     * and the result is never saved.
+     * address.
      *
      * @return an {@link InetAddress} for this host
      *
      * @throws InetAddressUnresolvableException if the hostname cannot be
      *         resolved
-     *
-     * @see #getInetAddress()
      */
-    public InetAddress resolveInetAddress() {
+    public InetAddress getInetAddress() {
         try {
             return InetAddress.getByName(hostname);
         } catch (UnknownHostException e) {
@@ -210,49 +217,27 @@ public final class Host {
     }
 
     /**
-     * Gets this host's IP address. If the host was constructed with an IP
-     * address, that address is returned. If the host was constructed using
-     * {@link #fromHostnameUnresolved(String)}, the IP address is
-     * {@linkplain #resolveInetAddress() resolved} on the first call to this
-     * method. Subsequent calls return the resolved address.
-     *
-     * @return an {@link InetAddress} for this host
-     *
-     * @throws InetAddressUnresolvableException if this host was constructed
-     *         without an IP address and the hostname cannot be resolved
-     */
-    public InetAddress getInetAddress() {
-        if (cachedInetAddress == null) {
-            cachedInetAddress = resolveInetAddress();
-        }
-        return cachedInetAddress;
-    }
-
-    /**
      * Gets this host's canonical hostname by performing a reverse DNS lookup
      * on this host's {@linkplain #getInetAddress() IP address}.
      *
      * @see InetAddress#getCanonicalHostName()
      */
-    public String getCanonicalHostName() {
+    public String getCanonicalHostname() {
         return getInetAddress().getCanonicalHostName();
     }
 
     /**
-     * Determines if this host has the same canonical name as another host. The
-     * canonical name of the other host is always resolved.
+     * Determines if this host has the same canonical name as another host.
      *
      * @param other the other host
      *
-     * @return {@code true} if the other host has the same canonical hostname as
-     *         this host
+     * @return {@code true} if the hosts have the same canonical hostname
      *
-     * @throws InetAddressUnresolvableException if either host name cannot be
+     * @throws InetAddressUnresolvableException if either hostname cannot be
      *         resolved
      */
     public boolean resolvesToHost(Host other) {
-        // TODO(bkeyes): is there a better resolution contract?
-        return getCanonicalHostName().equals(other.resolveInetAddress().getCanonicalHostName());
+        return getCanonicalHostname().equals(other.getCanonicalHostname());
     }
 
     @Override

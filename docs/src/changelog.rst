@@ -1,6 +1,43 @@
-********
-Releases
-********
+*********
+Changelog
+*********
+
+0.7.0
+=====
+
+Initial open-source release! `GitHub Milestone <https://github.com/palantir/giraffe/milestones/0.7.0>`_
+
+New Features
+------------
+
+- Add ``HostAccessor``, a factory for ``HostControlSystem`` instances
+- Add ``Commands.isLocal`` and ``MoreFiles.isLocal``
+
+API Changes
+-----------
+
+- Change URIs of SSH systems to ``file+ssh`` and ``exec+ssh``
+- Replace ``SshHost`` with ``SshHostAccessor``
+- Rename SSH credential classes to ``PasswordSshCredential`` and
+  ``PublicKeySshCredential``
+- Remove ``HostControlSystems``; use ``HostAccessors.getDefault().open()`` to
+  get the default ``HostControlSystem``
+- Replace ``SystemConverter`` with ``SystemUpgrader``
+- Remove reverse DNS resolution during ``Host`` creation
+
+Fixes and Improvements
+----------------------
+
+- Fix integer overflow when resizing buffers
+- Reads from ``CommandFuture`` streams no longer consume output that would
+  otherwise be available when creating ``CommandResult`` instances.
+- Add windowing to standard output and error streams, allowing clients to
+  optionally discard data
+- Fix size attribute for empty files when using SSH
+- Throw ``ClosedExecutionSystemException`` when calling methods on a closed
+  execution system
+- Improve exception message when a command times out
+- Many build and documentation changes
 
 0.6.0
 =====
@@ -8,7 +45,6 @@ Releases
 New Features
 ------------
 
-- Add Kerberos authentication support to SSH systems
 - Add ``Commands.toResult``
 
 API Changes
