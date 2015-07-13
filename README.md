@@ -5,8 +5,8 @@
 Gracefully Integrated Remote Access For Files and Execution
 > A long neck to reach far-away places
 
-- [Home](http://github.palantir.io/giraffe/)
-- [Documentation](http://github.palantir.io/giraffe/docs/0.7.0/)
+- [Home](http://palantir.github.io/giraffe/)
+- [Documentation](http://palantir.github.io/giraffe/docs/0.7.0/)
 
 ## Overview
 
