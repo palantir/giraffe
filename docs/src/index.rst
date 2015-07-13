@@ -21,8 +21,8 @@ Gradle_ for builds::
     }
 
     dependencies {
-        compile 'com.palantir.giraffe:giraffe-core:0.6.0'
-        compile 'com.palantir.giraffe:giraffe-ssh:0.6.0'
+        compile 'com.palantir.giraffe:giraffe-core:0.7.0'
+        compile 'com.palantir.giraffe:giraffe-ssh:0.7.0'
     }
 
 .. _Gradle: https://gradle.org/
