@@ -1,0 +1,13 @@
+baseurl: "/giraffe"
+url: "http://palantir.github.io"
+
+title: Giraffe
+description: >
+  Giraffe is a Java library that makes it easy to access files and execute
+  commands on local and remote machines.
+
+# Build settings
+markdown: kramdown
+exclude:
+  - Gemfile
+  - Gemfile.lock

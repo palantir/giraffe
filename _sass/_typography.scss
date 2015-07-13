@@ -1,0 +1,24 @@
+html {
+    font-family: 'Goudy Old Style', 'Minion Pro', 'Bell MT', 'Georgia', 'Hiragino Mincho Pro', serif;
+    font-size: 17px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Garamond', 'Georgia', serif;
+}
+
+h1 { font-size: 240%; }
+h2 { font-size: 180%; }
+h3 { font-size: 150%; }
+h4 { font-size: 130%; }
+h5 { font-size: 100%; }
+h6 { font-size: 100%; }
+
+pre, code {
+    font-family: 'Consolas', 'Menlo', 'Deja Vu Sans Mono', 'Bitstream Vera Sans Mono', monospace;
+    font-size: 80%;
+}
+
+pre code {
+    font-size: 100%;
+}

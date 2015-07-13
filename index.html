@@ -1,0 +1,62 @@
+---
+layout: default
+---
+<header class="main-header">
+    <h1>Giraffe</h1>
+    <h2>Gracefully Integrated Remote Access For Files and Execution</h2>
+    {% include logo.svg %}
+    <blockquote>“A long neck to reach far-away places”</blockquote>
+    <ul class="external-links">
+        <li><a href="https://github.com/palantir/giraffe">GitHub</a></li><!--
+     --><li><a href="https://travis-ci.org/palantir/giraffe">Travis CI</a></li><!--
+     --><li><a href="https://bintray.com/palantir/releases/giraffe/view">Bintray</a></li><!--
+     --><li><a href="https://palantir.github.io/">Palantir Open Source</a></li>
+    </ul>
+</header>
+
+<hr />
+
+<p>{{ site.description }} A simple and usable API isolates clients from
+differences in access mechanisms, allowing the same code to target many
+different hosts. It aims to feel like an extension of the standard library,
+integrating with and taking inspiration from the <code>java.nio.file</code>
+package.</p>
+
+{% assign releases = site.data.releases | sort 'released' | reverse %}
+<div class="latest">
+    {% assign release = releases | first %}
+    <h3>Latest Release: <span class="release-version">{{ release.version }}</span></h3>
+    {% include release_links.html %}
+    <div class="maven-info">
+        <p><b>Maven Coordinates:</b> <code>com.palantir.giraffe:giraffe-(core|ssh):{{ release.version }}</code></p>
+        <p><b>Repository:</b> <code>https://dl.bintray.com/palantir/releases</code></p>
+    </div>
+</div>
+
+{% highlight java %}
+{% include example.java %}
+{% endhighlight %}
+
+<p>Giraffe is open-sourced under the Apache 2.0 license and is developed by a
+team at <a href="https://palantir.com">Palantir Technologies</a>, where it is
+the foundation of many test frameworks and deployment tools.</p>
+
+<hr />
+
+<div class="releases"/>
+    <h3>Releases</h3>
+    <ol class="release-list">
+        {% for release in releases %}
+        <li>
+            <span class="release-version">{{ release.version }}</span>
+            <i class="release-date">({{ release.released | date: '%Y-%m-%d' }})</i>
+            {% include release_links.html %}
+        </li>
+        {% endfor %}
+    </ol>
+</div>
+
+<footer class="site-footer">
+    <p>© {{ 'now' | date: '%Y' }} <a href="https://palantir.com">Palantir Technologies</a></p>
+    <p><a href="https://github.com/palantir/giraffe/issues/new">Report a Bug</a></p>
+</footer>
