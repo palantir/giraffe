@@ -16,12 +16,11 @@ for command execution with remote implementations of the `java.nio.file` API
 introduced in Java 7.
 
 ```java
-Host example = Host.fromHostname("example.com");
-SshHostAccessor ssh = SshHostAccessor.forPassword(example, "giraffe", "l0ngN3ck");
+SshHostAccessor ssh = SshHostAccessor.forPassword("example.com", "giraffe", "l0ngN3ck");
 
 try (HostControlSystem hcs = ssh.open()) {
     Path logs = hcs.getPath("server/logs");
-    Files.copy(logs.resolve("access.log"), Paths.get("log/example-access.log");
+    Files.copy(logs.resolve("access.log"), Paths.get("log/example-access.log"));
 
     Command archive = hcs.getCommand("server/bin/archive.sh", "--format=zip", "logs");
     Commands.execute(archive);
