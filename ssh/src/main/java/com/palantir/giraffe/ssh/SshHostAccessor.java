@@ -87,6 +87,12 @@ public final class SshHostAccessor implements AuthenticatedHostAccessor<SshCrede
         return forCredential(host, PublicKeySshCredential.of(username, privateKey));
     }
 
+    public static SshHostAccessor forKerberos(String hostname, String username, String realm,
+            String kdcHostname) {
+        Host host = Host.fromHostname(hostname);
+        return forCredential(host, KerberosSshCredential.of(username, realm, kdcHostname));
+    }
+
     /**
      * Returns a new {@code SshHostAccessor} that authenticates using the given
      * {@link SshCredential}.

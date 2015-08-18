@@ -33,4 +33,7 @@ public interface SshAuthenticator extends Authenticator {
 
     void authByPublicKey(SshCredential credential, byte[] privateKey) throws IOException;
 
+    void authByKerberos(SshCredential credential, String realm, String kdcHostname)
+            throws IOException;
+
 }
