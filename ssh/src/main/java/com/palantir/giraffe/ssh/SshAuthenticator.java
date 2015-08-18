@@ -29,11 +29,10 @@ import com.palantir.giraffe.host.Authenticator;
  */
 public interface SshAuthenticator extends Authenticator {
 
-    void authByPassword(SshCredential credential, char[] password) throws IOException;
+    void authByPassword(PasswordSshCredential credential) throws IOException;
 
-    void authByPublicKey(SshCredential credential, byte[] privateKey) throws IOException;
+    void authByPublicKey(PublicKeySshCredential credential) throws IOException;
 
-    void authByKerberos(SshCredential credential, String realm, String kdcHostname)
-            throws IOException;
+    void authByKerberos(KerberosSshCredential credential) throws IOException;
 
 }

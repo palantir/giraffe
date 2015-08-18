@@ -16,18 +16,21 @@
 package com.palantir.giraffe.ssh.internal;
 
 import java.io.IOException;
-import java.nio.charset.Charset;
 
+import javax.security.auth.login.AppConfigurationEntry;
+import javax.security.auth.login.AppConfigurationEntry.LoginModuleControlFlag;
+import javax.security.auth.login.Configuration;
 import javax.security.auth.login.LoginContext;
 import javax.security.auth.login.LoginException;
 
 import org.ietf.jgss.GSSException;
 import org.ietf.jgss.Oid;
 
-import com.palantir.giraffe.file.MoreFiles;
-import com.palantir.giraffe.file.TempPath;
+import com.google.common.collect.ImmutableMap;
+import com.palantir.giraffe.ssh.KerberosSshCredential;
+import com.palantir.giraffe.ssh.PasswordSshCredential;
+import com.palantir.giraffe.ssh.PublicKeySshCredential;
 import com.palantir.giraffe.ssh.SshAuthenticator;
-import com.palantir.giraffe.ssh.SshCredential;
 import com.palantir.giraffe.ssh.SshSystemRequest;
 
 import net.schmizz.sshj.Config;
@@ -38,6 +41,8 @@ import net.schmizz.sshj.userauth.UserAuthException;
 import net.schmizz.sshj.userauth.keyprovider.KeyProvider;
 
 final class SshConnectionFactory {
+
+    private static final String KRB_ENTRY_NAME = "GiraffeKrb5";
 
     private final Config config;
 
@@ -60,7 +65,8 @@ final class SshConnectionFactory {
         return sshClient;
     }
 
-    private final class Authenticator implements SshAuthenticator {
+    private static final class Authenticator implements SshAuthenticator {
+
         private final SSHClient client;
 
         public Authenticator(SSHClient client) {
@@ -68,71 +74,61 @@ final class SshConnectionFactory {
         }
 
         @Override
-        public void authByPassword(SshCredential credential, char[] password)
-                throws IOException {
-            client.authPassword(credential.getUsername(), password);
+        public void authByPassword(PasswordSshCredential credential) throws IOException {
+            client.authPassword(credential.getUsername(), credential.getPassword());
         }
 
         @Override
-        public void authByPublicKey(SshCredential credential, byte[] privateKey)
-                throws IOException {
-            KeyProvider keyProvider = client.loadKeys(new String(privateKey), null, null);
+        public void authByPublicKey(PublicKeySshCredential credential) throws IOException {
+            String privateKey = new String(credential.getPrivateKey());
+            KeyProvider keyProvider = client.loadKeys(privateKey, null, null);
             client.authPublickey(credential.getUsername(), keyProvider);
         }
 
-        private static final String REALM_PROPERTY = "java.security.krb5.realm";
-        private static final String KDC_PROPERTY = "java.security.krb5.kdc";
-        private static final String CONFIG_PROPERTY = "java.security.auth.login.config";
-
         @Override
-        public void authByKerberos(SshCredential credential, String realm, String kdcHostname)
-                throws IOException {
+        public void authByKerberos(KerberosSshCredential credential) throws IOException {
+            String user = credential.getUsername();
 
-            final String originalRealm = System.getProperty(REALM_PROPERTY);
-            final String originalKdc = System.getProperty(KDC_PROPERTY);
-            final String originalConfig = System.getProperty(CONFIG_PROPERTY);
-
-            try (TempPath jaasConfFile = TempPath.createFile()) {
-                MoreFiles.write(jaasConfFile.path(),
-                        "Krb5LoginContext { com.sun.security.auth.module.Krb5LoginModule " +
-                        "required refreshKrb5Config=true useTicketCache=true debug=true ; };",
-                        Charset.defaultCharset()
-                );
-
-                // set properties necessary for Krb5LgoinContext
-                System.setProperty(REALM_PROPERTY, realm);
-                System.setProperty(KDC_PROPERTY, kdcHostname);
-                System.setProperty(CONFIG_PROPERTY,
-                        jaasConfFile.path().toAbsolutePath().toString());
-
-                LoginContext lc = null;
-                try {
-                    lc = new LoginContext("Krb5LoginContext");
-                    lc.login();
-                } catch (LoginException e) {
-                    throw new UserAuthException(e);
-                }
-
-                Oid krb5Oid;
-                try {
-                    krb5Oid = new Oid("1.2.840.113554.1.2.2");
-                } catch (GSSException e) {
-                    throw new UserAuthException("Failed to create Kerberos OID", e);
-                }
-
-                client.authGssApiWithMic(credential.getUsername(), lc, krb5Oid);
-            } finally {
-                restoreProperty(REALM_PROPERTY, originalRealm);
-                restoreProperty(KDC_PROPERTY, originalKdc);
-                restoreProperty(CONFIG_PROPERTY, originalConfig);
+            LoginContext lc = null;
+            try {
+                lc = new LoginContext(KRB_ENTRY_NAME, null, null, new KrbAuthConfiguration(user));
+                lc.login();
+            } catch (LoginException e) {
+                throw new UserAuthException(e);
             }
+
+            Oid krb5Oid;
+            try {
+                krb5Oid = new Oid("1.2.840.113554.1.2.2");
+            } catch (GSSException e) {
+                // this will never happen, krb5 OID is always valid
+                throw new AssertionError();
+            }
+            client.authGssApiWithMic(user, lc, krb5Oid);
+        }
+    }
+
+    private static final class KrbAuthConfiguration extends Configuration {
+        private final AppConfigurationEntry krbEntry;
+
+        KrbAuthConfiguration(String principal) {
+            krbEntry = new AppConfigurationEntry(
+                    "com.sun.security.auth.module.Krb5LoginModule",
+                    LoginModuleControlFlag.REQUIRED,
+                    ImmutableMap.<String, String>builder()
+                            .put("refreshKrb5Config", "true")
+                            .put("useTicketCache", "true")
+                            .put("doNotPrompt", "true")
+                            .put("principal", principal)
+                            .build());
         }
 
-        private void restoreProperty(String key, String originalValue) {
-            if (originalValue != null) {
-                System.setProperty(key, originalValue);
+        @Override
+        public AppConfigurationEntry[] getAppConfigurationEntry(String name) {
+            if (KRB_ENTRY_NAME.equals(name)) {
+                return new AppConfigurationEntry[] { krbEntry };
             } else {
-                System.clearProperty(key);
+                return null;
             }
         }
     }

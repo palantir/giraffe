@@ -41,7 +41,7 @@ public final class PasswordSshCredential extends SshCredential {
 
     @Override
     public void authenticate(SshAuthenticator authenticator) throws IOException {
-        authenticator.authByPassword(this, password.clone());
+        authenticator.authByPassword(this);
     }
 
     public char[] getPassword() {

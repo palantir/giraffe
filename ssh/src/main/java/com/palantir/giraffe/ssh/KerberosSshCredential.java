@@ -24,30 +24,16 @@ import java.io.IOException;
  */
 public class KerberosSshCredential extends SshCredential {
 
-    public static KerberosSshCredential of(String username, String realm, String kdcHostname) {
-        return new KerberosSshCredential(username, realm, kdcHostname);
+    public static KerberosSshCredential of(String username) {
+        return new KerberosSshCredential(username);
     }
 
-    private final String realm;
-    private final String kdcHostname;
-
-    private KerberosSshCredential(String username, String realm, String kdcHostname) {
+    public KerberosSshCredential(String username) {
         super(username);
-        this.realm = realm;
-        this.kdcHostname = kdcHostname;
     }
 
     @Override
     public void authenticate(SshAuthenticator authenticator) throws IOException {
-        authenticator.authByKerberos(this, realm, kdcHostname);
+        authenticator.authByKerberos(this);
     }
-
-    public String getRealm() {
-        return realm;
-    }
-
-    public String getKdcHostname() {
-        return kdcHostname;
-    }
-
 }
