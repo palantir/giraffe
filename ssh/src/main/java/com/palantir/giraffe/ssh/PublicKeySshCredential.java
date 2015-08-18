@@ -62,7 +62,7 @@ public final class PublicKeySshCredential extends SshCredential {
 
     @Override
     public void authenticate(SshAuthenticator authenticator) throws IOException {
-        authenticator.authByPublicKey(this, privateKey.clone());
+        authenticator.authByPublicKey(this);
     }
 
     public byte[] getPrivateKey() {

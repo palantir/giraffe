@@ -18,33 +18,22 @@ package com.palantir.giraffe.ssh;
 import java.io.IOException;
 
 /**
- * Authenticates SSH connections using a password.
+ * Authenticates SSH connections via GSS-API in a Kerberos environment.
  *
- * @author bkeyes
+ * @author benh
  */
-public final class PasswordSshCredential extends SshCredential {
+public class KerberosSshCredential extends SshCredential {
 
-    public static PasswordSshCredential of(String username, String password) {
-        return new PasswordSshCredential(username, password.toCharArray());
+    public static KerberosSshCredential of(String username) {
+        return new KerberosSshCredential(username);
     }
 
-    public static PasswordSshCredential of(String username, char[] password) {
-        return new PasswordSshCredential(username, password);
-    }
-
-    private final char[] password;
-
-    private PasswordSshCredential(String username, char[] password) {
+    public KerberosSshCredential(String username) {
         super(username);
-        this.password = password.clone();
     }
 
     @Override
     public void authenticate(SshAuthenticator authenticator) throws IOException {
-        authenticator.authByPassword(this);
-    }
-
-    public char[] getPassword() {
-        return password.clone();
+        authenticator.authByKerberos(this);
     }
 }
