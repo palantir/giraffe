@@ -14,7 +14,7 @@ dependencies {
     testCompile project(path: ':giraffe-fs-base', configuration: 'systemTest')
     testCompile project(path: ':giraffe-core', configuration: 'systemTest')
 
-    testCompile(group: 'org.apache.sshd', name: 'sshd-core', version: '0.13.0') {
+    testCompile(group: 'org.apache.sshd', name: 'sshd-core', version: '0.14.0') {
         // exclude optional Maven dependencies
         exclude module: 'tomcat-apr'
     }
