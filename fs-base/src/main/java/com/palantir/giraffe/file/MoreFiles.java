@@ -23,7 +23,6 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
-import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
@@ -37,9 +36,7 @@ import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.spi.FileSystemProvider;
 import java.util.Collections;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Throwables;
@@ -281,63 +278,6 @@ public final class MoreFiles {
         }
 
         Files.walkFileTree(source, new CopyVisitor(source, target));
-    }
-
-    private static final class CopyVisitor extends SimpleFileVisitor<Path> {
-        private final Map<Path, Set<PosixFilePermission>> perms = new HashMap<>();
-
-        private final Path source;
-        private final Path target;
-
-        CopyVisitor(Path source, Path target) {
-            this.source = source;
-            this.target = target;
-        }
-
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-                throws IOException {
-            // store permissions to set in postVisitDirectory in case the
-            // source permissions are incompatible with writing files
-            perms.put(dir, Files.getPosixFilePermissions(dir));
-            try {
-                Files.createDirectory(resolve(dir));
-            } catch (FileAlreadyExistsException ignored) {
-                // ignore
-            }
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-                throws IOException {
-            Files.copy(file, resolve(file));
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-                throws IOException {
-            if (exc != null) {
-                throw exc;
-            }
-            Set<PosixFilePermission> dirPerms = perms.get(dir);
-            assert dirPerms != null : "no perms for " + dir;
-            Files.setPosixFilePermissions(resolve(dir), dirPerms);
-            return FileVisitResult.CONTINUE;
-        }
-
-        /**
-         * Gets the location {@code path} in {@code target}.
-         */
-        private Path resolve(Path path) {
-            Path relative = source.relativize(path);
-            Path targetPath = target.toAbsolutePath();
-            for (Path pathComponent : relative) {
-                targetPath = targetPath.resolve(pathComponent.getFileName().toString());
-            }
-            return targetPath;
-        }
     }
 
     /**
