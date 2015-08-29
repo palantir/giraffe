@@ -43,6 +43,7 @@ import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Throwables;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.palantir.giraffe.file.base.attribute.PermissionChange;
 import com.palantir.giraffe.file.base.feature.LargeFileCopy;
@@ -566,6 +567,56 @@ public final class MoreFiles {
         try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directoryPath)) {
             return Lists.newArrayList(directoryStream);
         }
+    }
+
+    /**
+     * A {@code FileVisitor} that builds a list of {@code Path} objects it visits.
+     *
+     * @author jyu
+     */
+    private static final class ListVisitor extends SimpleFileVisitor<Path> {
+        private final ImmutableList.Builder<Path> paths;
+
+        public ListVisitor() {
+            paths = new ImmutableList.Builder<>();
+        }
+
+        /**
+         * Adds the visited {@code Path} to the list of visited {@code Path} objects.
+         */
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+            paths.add(file);
+            return FileVisitResult.CONTINUE;
+        }
+
+        /**
+         * Returns the current list of visited {@code Path} objects.
+         *
+         * The returned path list can change between calls if this visitor visits any paths.
+         */
+        public List<Path> getPaths() {
+            return paths.build();
+        }
+    }
+
+    /**
+     * Given a {@code Path} representing a directory, retrieve the list of files
+     * and recursively contained in that {@code Path} as a {@code List}. The
+     * {@code Path} objects are obtained as if by resolving the name of the
+     * directory objects against the given {@code Path}.
+     *
+     * @param directoryPath The {@code Path} to get the file entries for
+     *
+     * @return A list of {@code Path} objects for the files recursively found in the directory
+     *
+     * @throws IOException If an I/O error occurs while descending the file tree
+     */
+    public static List<Path> listRecursiveFilesInDirectory(Path directoryPath) throws IOException {
+        ListVisitor visitor = new ListVisitor();
+        Files.walkFileTree(directoryPath, visitor);
+        return visitor.getPaths();
     }
 
     /**
