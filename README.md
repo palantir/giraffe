@@ -1,6 +1,6 @@
 <img src="docs/src/static/logo.png?raw=true" alt="The Giraffe logo, a giraffe wearing glasses" width="120" height ="120"/>
 
-# Giraffe
+# Giraffe [![Build Status](https://travis-ci.org/palantir/giraffe.svg?branch=develop)](https://travis-ci.org/palantir/giraffe)
 
 Gracefully Integrated Remote Access For Files and Execution
 > A long neck to reach far-away places
