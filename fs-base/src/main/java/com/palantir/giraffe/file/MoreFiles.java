@@ -612,7 +612,7 @@ public final class MoreFiles {
      *
      * @throws IOException if an I/O error occurs while descending the file tree
      */
-    public static List<Path> listRecursiveFilesInDirectory(Path directoryPath) throws IOException {
+    public static List<Path> listDirectoryFilesRecursive(Path directoryPath) throws IOException {
         ListVisitor visitor = new ListVisitor();
         Files.walkFileTree(directoryPath, visitor);
         return visitor.getPaths();
