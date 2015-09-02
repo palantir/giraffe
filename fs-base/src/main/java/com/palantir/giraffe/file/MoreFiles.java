@@ -602,16 +602,15 @@ public final class MoreFiles {
     }
 
     /**
-     * Given a {@code Path} representing a directory, retrieve the list of files
-     * and recursively contained in that {@code Path} as a {@code List}. The
-     * {@code Path} objects are obtained as if by resolving the name of the
-     * directory objects against the given {@code Path}.
+     * Gets a list of the files in the given directory and all sub-directories.
+     * The returned paths are relative to the given directory.
      *
-     * @param directoryPath The {@code Path} to get the file entries for
+     * @param directoryPath the {@code Path} to list
      *
-     * @return A list of {@code Path} objects for the files recursively found in the directory
+     * @return a list of {@code Path} objects for the files recursively found in
+     *         {@code directoryPath}
      *
-     * @throws IOException If an I/O error occurs while descending the file tree
+     * @throws IOException if an I/O error occurs while descending the file tree
      */
     public static List<Path> listRecursiveFilesInDirectory(Path directoryPath) throws IOException {
         ListVisitor visitor = new ListVisitor();
