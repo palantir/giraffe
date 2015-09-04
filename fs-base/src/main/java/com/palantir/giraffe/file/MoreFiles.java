@@ -42,6 +42,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
@@ -570,24 +571,26 @@ public final class MoreFiles {
     }
 
     /**
-     * A {@code FileVisitor} that builds a list of {@code Path} objects it visits.
+     * A {@code FileVisitor} that builds a list of relative {@code Path} objects it visits.
      *
      * @author jyu
      */
-    private static final class ListVisitor extends SimpleFileVisitor<Path> {
+    private static final class RelativeListVisitor extends SimpleFileVisitor<Path> {
+        private final Path root;
         private final ImmutableList.Builder<Path> paths;
 
-        public ListVisitor() {
+        public RelativeListVisitor(Path relativeRoot) {
+            root = Preconditions.checkNotNull(relativeRoot, "relative root must be non-null");
             paths = new ImmutableList.Builder<>();
         }
 
         /**
-         * Adds the visited {@code Path} to the list of visited {@code Path} objects.
+         * Adds the relativized visited {@code Path} to the list of visited {@code Path} objects.
          */
         @Override
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
                 throws IOException {
-            paths.add(file);
+            paths.add(root.relativize(file));
             return FileVisitResult.CONTINUE;
         }
 
@@ -613,7 +616,7 @@ public final class MoreFiles {
      * @throws IOException if an I/O error occurs while descending the file tree
      */
     public static List<Path> listDirectoryFilesRecursive(Path directoryPath) throws IOException {
-        ListVisitor visitor = new ListVisitor();
+        RelativeListVisitor visitor = new RelativeListVisitor(directoryPath);
         Files.walkFileTree(directoryPath, visitor);
         return visitor.getPaths();
     }
