@@ -35,13 +35,13 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.EnumSet;
 import java.util.List;
 import java.util.Set;
 
-import com.google.common.base.Preconditions;
 import com.google.common.base.Throwables;
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.palantir.giraffe.file.base.attribute.PermissionChange;
 import com.palantir.giraffe.file.base.feature.LargeFileCopy;
@@ -493,71 +493,111 @@ public final class MoreFiles {
     }
 
     /**
-     * Given a {@code Path} representing a directory, retrieve the list of files
-     * and directories contained in that {@code Path} as a {@code List}. The
-     * {@code Path} objects are obtained as if by resolving the name of the
-     * directory objects against the given {@code Path}.
+     * Gets a list of the files and directories in the given directory. The
+     * returned paths are {@linkplain Path#resolve(Path) resolved} against the
+     * given path.
      *
-     * @param directoryPath The {@code Path} to get the directory entries for
+     * @param dir the {@code Path} to list
      *
-     * @return A list of {@code Path} objects representing the directory entries
-     *
-     * @throws IOException If an I/O error occurs while accessing the path
+     * @throws IOException if an I/O error occurs while listing entries
      */
-    public static List<Path> listDirectory(Path directoryPath) throws IOException {
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directoryPath)) {
-            return Lists.newArrayList(directoryStream);
+    public static List<Path> listDirectory(Path dir) throws IOException {
+        try (DirectoryStream<Path> entries = Files.newDirectoryStream(dir)) {
+            return Lists.newArrayList(entries);
         }
     }
 
     /**
-     * A {@code FileVisitor} that builds a list of relative {@code Path} objects it visits.
+     * Gets a list of the files in the given directory. The returned paths are
+     * {@linkplain Path#resolve(Path) resolved} against the given path.
      *
-     * @author jyu
+     * @param dir the {@code Path} to list
+     *
+     * @throws IOException if an I/O error occurs while listing entries
      */
-    private static final class RelativeListVisitor extends SimpleFileVisitor<Path> {
-        private final Path root;
-        private final ImmutableList.Builder<Path> paths;
+    public static List<Path> listDirectoryFiles(Path dir) throws IOException {
+        try (DirectoryStream<Path> entries = Files.newDirectoryStream(dir, regularFileFilter())) {
+            return Lists.newArrayList(entries);
+        }
+    }
 
-        public RelativeListVisitor(Path relativeRoot) {
-            root = Preconditions.checkNotNull(relativeRoot, "relative root must be non-null");
-            paths = new ImmutableList.Builder<>();
+    private enum ListDirectoryMode {
+        FILES, DIRS;
+
+        private static Set<ListDirectoryMode> all() {
+            return EnumSet.allOf(ListDirectoryMode.class);
         }
 
-        /**
-         * Adds the relativized visited {@code Path} to the list of visited {@code Path} objects.
-         */
+        private static Set<ListDirectoryMode> filesOnly() {
+            return EnumSet.of(FILES);
+        }
+    }
+
+    /**
+     * A {@code FileVisitor} that builds a list of {@code Path} objects it visits.
+     *
+     * @author jyu
+     * @author bkeyes
+     */
+    private static final class ListVisitor extends SimpleFileVisitor<Path> {
+        private final Set<ListDirectoryMode> mode;
+        private final ArrayList<Path> paths;
+
+        ListVisitor(Set<ListDirectoryMode> mode) {
+            this.mode = mode;
+            paths = new ArrayList<>();
+        }
+
         @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
                 throws IOException {
-            paths.add(root.relativize(file));
+            if (mode.contains(ListDirectoryMode.DIRS)) {
+                paths.add(dir);
+            }
             return FileVisitResult.CONTINUE;
         }
 
-        /**
-         * Returns the current list of visited {@code Path} objects.
-         *
-         * The returned path list can change between calls if this visitor visits any paths.
-         */
-        public List<Path> getPaths() {
-            return paths.build();
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+            if (mode.contains(ListDirectoryMode.FILES)) {
+                paths.add(file);
+            }
+            return FileVisitResult.CONTINUE;
         }
+
+        public List<Path> getPaths() {
+            return paths;
+        }
+    }
+
+    /**
+     * Gets a list of the files and directories in the given directory and all
+     * sub-directories. The returned paths are {@linkplain Path#resolve(Path)
+     * resolved} against the given path.
+     *
+     * @param dir the {@code Path} to list
+     *
+     * @throws IOException if an I/O error occurs while descending the file tree
+     */
+    public static List<Path> listDirectoryRecursive(Path dir) throws IOException {
+        ListVisitor visitor = new ListVisitor(ListDirectoryMode.all());
+        Files.walkFileTree(dir, visitor);
+        return visitor.getPaths();
     }
 
     /**
      * Gets a list of the files in the given directory and all sub-directories.
-     * The returned paths are relative to the given directory.
+     * The returned paths are {@linkplain Path#resolve(Path) resolved} against
+     * the given path.
      *
-     * @param directoryPath the {@code Path} to list
-     *
-     * @return a list of {@code Path} objects for the files recursively found in
-     *         {@code directoryPath}
+     * @param dir the {@code Path} to list
      *
      * @throws IOException if an I/O error occurs while descending the file tree
      */
-    public static List<Path> listDirectoryFilesRecursive(Path directoryPath) throws IOException {
-        RelativeListVisitor visitor = new RelativeListVisitor(directoryPath);
-        Files.walkFileTree(directoryPath, visitor);
+    public static List<Path> listDirectoryFilesRecursive(Path dir) throws IOException {
+        ListVisitor visitor = new ListVisitor(ListDirectoryMode.filesOnly());
+        Files.walkFileTree(dir, visitor);
         return visitor.getPaths();
     }
 
