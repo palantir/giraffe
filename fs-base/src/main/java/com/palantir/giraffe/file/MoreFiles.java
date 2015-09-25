@@ -251,7 +251,7 @@ public final class MoreFiles {
      * @param target the target path
      *
      * @throws FileAlreadyExistsException if the target already exists
-     * @throws NoSuchFileException if and parents of the target do not exist
+     * @throws NoSuchFileException if any parents of the target do not exist
      * @throws IOException if an I/O error occurs while copying
      */
     public static void copyRecursive(Path source, Path target) throws IOException {
