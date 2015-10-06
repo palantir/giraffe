@@ -24,6 +24,13 @@ import java.io.IOException;
  */
 public class KerberosSshCredential extends SshCredential {
 
+    /**
+     * System property to enable Kerberos debug output when set to {@code true}.
+     * Note that debug output is verbose and is printed directly to standard
+     * out. This is a limitation of Java's Kerberos implementation.
+     */
+    public static final String DEBUG_PROPERTY = "giraffe.kerberos.debug";
+
     public static KerberosSshCredential of(String username) {
         return new KerberosSshCredential(username);
     }

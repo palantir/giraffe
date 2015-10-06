@@ -88,6 +88,11 @@ final class SshConnectionFactory {
         @Override
         public void authByKerberos(KerberosSshCredential credential) throws IOException {
             String user = credential.getUsername();
+            if (kerberosDebugEnabled()) {
+                System.setProperty("sun.security.krb5.debug", "true");
+            } else {
+                System.clearProperty("sun.security.krb5.debug");
+            }
 
             LoginContext lc = null;
             try {
@@ -112,15 +117,19 @@ final class SshConnectionFactory {
         private final AppConfigurationEntry krbEntry;
 
         KrbAuthConfiguration(String principal) {
+            ImmutableMap.Builder<String, String> options = ImmutableMap.builder();
+            options.put("refreshKrb5Config", "true");
+            options.put("useTicketCache", "true");
+            options.put("doNotPrompt", "true");
+            options.put("principal", principal);
+            if (kerberosDebugEnabled()) {
+                options.put("debug", "true");
+            }
+
             krbEntry = new AppConfigurationEntry(
                     "com.sun.security.auth.module.Krb5LoginModule",
                     LoginModuleControlFlag.REQUIRED,
-                    ImmutableMap.<String, String>builder()
-                            .put("refreshKrb5Config", "true")
-                            .put("useTicketCache", "true")
-                            .put("doNotPrompt", "true")
-                            .put("principal", principal)
-                            .build());
+                    options.build());
         }
 
         @Override
@@ -131,5 +140,9 @@ final class SshConnectionFactory {
                 return null;
             }
         }
+    }
+
+    private static boolean kerberosDebugEnabled() {
+        return Boolean.getBoolean(KerberosSshCredential.DEBUG_PROPERTY);
     }
 }
