@@ -23,7 +23,9 @@ import java.io.Writer;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
+import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -248,15 +250,27 @@ public final class MoreFiles {
      * @param source the path to copy
      * @param target the target path
      *
-     * @throws IllegalArgumentException if the destination already exists or one
-     *         or more parent directories do not exist.
+     * @throws FileAlreadyExistsException if the target already exists
+     * @throws NoSuchFileException if any parents of the target do not exist
      * @throws IOException if an I/O error occurs while copying
      */
     public static void copyRecursive(Path source, Path target) throws IOException {
-        checkArgument(!Files.exists(target),
-                "target (%s) already exists.", target.toAbsolutePath());
-        checkArgument(Files.isDirectory(target.getParent()),
-                "parent directory for target (%s) does not exist.", target.toAbsolutePath());
+        if (Files.exists(target)) {
+            throw new FileAlreadyExistsException(target.toString());
+        }
+
+        if (!Files.exists(target.getParent())) {
+            throw new NoSuchFileException(target.toString());
+        }
+
+        Path normalizedSource = source.normalize().toAbsolutePath();
+        Path normalizedTarget = target.normalize().toAbsolutePath();
+        if (normalizedTarget.startsWith(normalizedSource)) {
+            throw new FileSystemException(
+                    normalizedSource.toString(),
+                    normalizedTarget.toString(),
+                    "cannot copy a path into itself");
+        }
 
         FileSystemProvider sourceProvider = source.getFileSystem().provider();
         FileSystemProvider targetProvider = target.getFileSystem().provider();
