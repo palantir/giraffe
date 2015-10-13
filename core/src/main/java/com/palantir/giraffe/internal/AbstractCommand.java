@@ -83,7 +83,10 @@ public abstract class AbstractCommand implements Command {
 
     @Override
     public String toString() {
-        StringBuilder cmd = new StringBuilder(executable).append(' ');
-        return Joiner.on(' ').appendTo(cmd, arguments).toString();
+        StringBuilder cmd = new StringBuilder(executable);
+        if (!arguments.isEmpty()) {
+            Joiner.on(' ').appendTo(cmd.append(' '), arguments);
+        }
+        return cmd.toString();
     }
 }
