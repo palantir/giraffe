@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-    virtualenv 'virtualenv:virtualenv:13.0.3@tar.gz'
+    virtualenv 'virtualenv:virtualenv:13.1.2@tar.gz'
 }
 
 task installVirtualenv(type: Copy) {
