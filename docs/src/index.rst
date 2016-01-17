@@ -48,7 +48,6 @@ For low-level details, see the full `API documentation`_.
    :maxdepth: 2
 
    effective_giraffe
-   public_api
 
 .. _API documentation: api/index.html
 
@@ -56,10 +55,12 @@ Release History
 ===============
 
 The list of changes in this release and all previous releases can be found in
-the :doc:`changelog`.
+the :doc:`changelog`. To understand how version numbers correspond to API
+changes, see :doc:`version_numbers`.
 
 .. toctree::
    :hidden:
    :maxdepth: 2
 
    changelog
+   version_numbers
