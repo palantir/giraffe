@@ -42,14 +42,13 @@ Learn More
 ==========
 
 For details on best practices and anti-patterns, see :doc:`effective_giraffe`.
-For low-level details, see the full `API documentation`_.
+For low-level details, see the full :doc:`api/index`.
 
 .. toctree::
    :maxdepth: 2
 
    effective_giraffe
-
-.. _API documentation: api/index.html
+   api/index
 
 Release History
 ===============
