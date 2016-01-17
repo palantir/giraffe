@@ -29,27 +29,22 @@ try (HostControlSystem hcs = ssh.open()) {
 
 ## Get Giraffe
 
-Giraffe is available from Palantir's [Bintray repository][bintray].
-
-Most projects that use Giraffe include the `core` project and one or more
-remote implementations. Currently, `ssh` is the only remote implementation.
+Giraffe is available from [JCenter][jcenter] or Palantir's [Bintray repository][bintray].
 
 With **Gradle**:
 
 ```gradle
 repositories {
-    mavenCentral()
-    maven {
-        url 'http://dl.bintray.com/palantir/releases'
-    }
+    jcenter()
 }
 
 dependencies {
-    compile 'com.palantir.giraffe:giraffe-core:0.7.0'
     compile 'com.palantir.giraffe:giraffe-ssh:0.7.0'
+    // or 'com.palantir.giraffe:giraffe-core:0.7.0' for local features only
 }
 ```
 
+[jcenter]: https://bintray.com/bintray/jcenter
 [bintray]: http://dl.bintray.com/palantir/releases
 
 ## Why Giraffe?
@@ -78,8 +73,8 @@ execution.
 The closest equivalent to Giraffe is XebiaLabs's [Overthere][overthere]. In our
 view, Giraffe has two major benefits when compared to Overthere:
 
-1. It's offered under the Apache 2.0 license instead of GPLv2
-2. It uses the standard `java.nio.file` API introduced in Java 7
+1. It uses the standard `java.nio.file` API introduced in Java 7
+2. It's offered under the Apache 2.0 license instead of the GPLv2
 
 That said, _Overthere_ supports more protocols and supports Windows, which may
 make it more appropriate for your use case.

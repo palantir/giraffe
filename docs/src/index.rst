@@ -11,18 +11,17 @@ Installing
 ==========
 
 Giraffe is published as a Maven-style artifact, but we recommend using
-Gradle_ for builds::
+Gradle_ for builds:
+
+.. code-block:: groovy
 
     repositories {
-        mavenCentral()
-        maven {
-            url 'http://dl.bintray.com/palantir/releases'
-        }
+        jcenter()
     }
 
     dependencies {
-        compile 'com.palantir.giraffe:giraffe-core:0.7.0'
         compile 'com.palantir.giraffe:giraffe-ssh:0.7.0'
+        // or 'com.palantir.giraffe:giraffe-core:0.7.0' for local features only
     }
 
 .. _Gradle: https://gradle.org/
