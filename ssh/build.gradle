@@ -6,7 +6,7 @@ dependencies {
     compile project(':giraffe-core')
 
     compile group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
-    compile(group: 'com.hierynomus', name: 'sshj', version: '0.13.0') {
+    compile(group: 'com.hierynomus', name: 'sshj', version: '0.15.0') {
         // force our version of slf4j-api in a way that persists
         exclude module: 'slf4j-api'
     }
