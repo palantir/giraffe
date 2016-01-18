@@ -1,12 +1,12 @@
 <img src="docs/src/static/logo.png?raw=true" alt="The Giraffe logo, a giraffe wearing glasses" width="120" height ="120"/>
 
-# Giraffe
+# Giraffe [![Build Status](https://travis-ci.org/palantir/giraffe.svg?branch=develop)](https://travis-ci.org/palantir/giraffe)
 
 Gracefully Integrated Remote Access For Files and Execution
 > A long neck to reach far-away places
 
-- [Home](http://github.palantir.io/giraffe/)
-- [Documentation](http://github.palantir.io/giraffe/docs/0.7.0/)
+- [Home](http://palantir.github.io/giraffe/)
+- [Documentation](http://palantir.github.io/giraffe/docs/0.8.0/)
 
 ## Overview
 
@@ -16,12 +16,11 @@ for command execution with remote implementations of the `java.nio.file` API
 introduced in Java 7.
 
 ```java
-Host example = Host.fromHostname("example.com");
-SshHostAccessor ssh = SshHostAccessor.forPassword(example, "giraffe", "l0ngN3ck");
+SshHostAccessor ssh = SshHostAccessor.forPassword("example.com", "giraffe", "l0ngN3ck");
 
 try (HostControlSystem hcs = ssh.open()) {
     Path logs = hcs.getPath("server/logs");
-    Files.copy(logs.resolve("access.log"), Paths.get("log/example-access.log");
+    Files.copy(logs.resolve("access.log"), Paths.get("log/example-access.log"));
 
     Command archive = hcs.getCommand("server/bin/archive.sh", "--format=zip", "logs");
     Commands.execute(archive);
@@ -30,27 +29,22 @@ try (HostControlSystem hcs = ssh.open()) {
 
 ## Get Giraffe
 
-Giraffe is available from Palantir's [Bintray repository][bintray].
-
-Most projects that use Giraffe include the `core` project and one or more
-remote implementations. Currently, `ssh` is the only remote implementation.
+Giraffe is available from [JCenter][jcenter] or Palantir's [Bintray repository][bintray].
 
 With **Gradle**:
 
 ```gradle
 repositories {
-    mavenCentral()
-    maven {
-        url 'http://dl.bintray.com/palantir/releases'
-    }
+    jcenter()
 }
 
 dependencies {
-    compile 'com.palantir.giraffe:giraffe-core:0.7.0'
-    compile 'com.palantir.giraffe:giraffe-ssh:0.7.0'
+    compile 'com.palantir.giraffe:giraffe-ssh:0.8.0'
+    // or 'com.palantir.giraffe:giraffe-core:0.8.0' for local features only
 }
 ```
 
+[jcenter]: https://bintray.com/bintray/jcenter
 [bintray]: http://dl.bintray.com/palantir/releases
 
 ## Why Giraffe?
@@ -79,8 +73,8 @@ execution.
 The closest equivalent to Giraffe is XebiaLabs's [Overthere][overthere]. In our
 view, Giraffe has two major benefits when compared to Overthere:
 
-1. It's offered under the Apache 2.0 license instead of GPLv2
-2. It uses the standard `java.nio.file` API introduced in Java 7
+1. It uses the standard `java.nio.file` API introduced in Java 7
+2. It's offered under the Apache 2.0 license instead of the GPLv2
 
 That said, _Overthere_ supports more protocols and supports Windows, which may
 make it more appropriate for your use case.

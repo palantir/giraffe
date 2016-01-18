@@ -42,9 +42,10 @@ javalink_classpath = [
 
 javalink_docroots = [
     'http://docs.oracle.com/javase/7/docs/api/',
-    ('../build/javadoc', 'api')
+    {'root': '../build/javadoc', 'base': 'api'}
 ]
 
+javalink_default_version = 7
 javalink_add_package_names = False
 
 # -- Options for HTML output ----------------------------------------------

@@ -25,6 +25,7 @@ import java.nio.charset.Charset;
 import java.nio.file.DirectoryStream;
 import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.FileSystem;
+import java.nio.file.FileSystemException;
 import java.nio.file.FileSystems;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
@@ -36,10 +37,10 @@ import java.nio.file.StandardCopyOption;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.nio.file.attribute.PosixFilePermission;
 import java.nio.file.spi.FileSystemProvider;
+import java.util.ArrayList;
 import java.util.Collections;
-import java.util.HashMap;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import com.google.common.base.Throwables;
@@ -249,15 +250,27 @@ public final class MoreFiles {
      * @param source the path to copy
      * @param target the target path
      *
-     * @throws IllegalArgumentException if the destination already exists or one
-     *         or more parent directories do not exist.
+     * @throws FileAlreadyExistsException if the target already exists
+     * @throws NoSuchFileException if any parents of the target do not exist
      * @throws IOException if an I/O error occurs while copying
      */
     public static void copyRecursive(Path source, Path target) throws IOException {
-        checkArgument(!Files.exists(target),
-                "target (%s) already exists.", target.toAbsolutePath());
-        checkArgument(Files.isDirectory(target.getParent()),
-                "parent directory for target (%s) does not exist.", target.toAbsolutePath());
+        if (Files.exists(target)) {
+            throw new FileAlreadyExistsException(target.toString());
+        }
+
+        if (!Files.exists(target.getParent())) {
+            throw new NoSuchFileException(target.toString());
+        }
+
+        Path normalizedSource = source.normalize().toAbsolutePath();
+        Path normalizedTarget = target.normalize().toAbsolutePath();
+        if (normalizedTarget.startsWith(normalizedSource)) {
+            throw new FileSystemException(
+                    normalizedSource.toString(),
+                    normalizedTarget.toString(),
+                    "cannot copy a path into itself");
+        }
 
         FileSystemProvider sourceProvider = source.getFileSystem().provider();
         FileSystemProvider targetProvider = target.getFileSystem().provider();
@@ -281,63 +294,6 @@ public final class MoreFiles {
         }
 
         Files.walkFileTree(source, new CopyVisitor(source, target));
-    }
-
-    private static final class CopyVisitor extends SimpleFileVisitor<Path> {
-        private final Map<Path, Set<PosixFilePermission>> perms = new HashMap<>();
-
-        private final Path source;
-        private final Path target;
-
-        CopyVisitor(Path source, Path target) {
-            this.source = source;
-            this.target = target;
-        }
-
-        @Override
-        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
-                throws IOException {
-            // store permissions to set in postVisitDirectory in case the
-            // source permissions are incompatible with writing files
-            perms.put(dir, Files.getPosixFilePermissions(dir));
-            try {
-                Files.createDirectory(resolve(dir));
-            } catch (FileAlreadyExistsException ignored) {
-                // ignore
-            }
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
-                throws IOException {
-            Files.copy(file, resolve(file));
-            return FileVisitResult.CONTINUE;
-        }
-
-        @Override
-        public FileVisitResult postVisitDirectory(Path dir, IOException exc)
-                throws IOException {
-            if (exc != null) {
-                throw exc;
-            }
-            Set<PosixFilePermission> dirPerms = perms.get(dir);
-            assert dirPerms != null : "no perms for " + dir;
-            Files.setPosixFilePermissions(resolve(dir), dirPerms);
-            return FileVisitResult.CONTINUE;
-        }
-
-        /**
-         * Gets the location {@code path} in {@code target}.
-         */
-        private Path resolve(Path path) {
-            Path relative = source.relativize(path);
-            Path targetPath = target.toAbsolutePath();
-            for (Path pathComponent : relative) {
-                targetPath = targetPath.resolve(pathComponent.getFileName().toString());
-            }
-            return targetPath;
-        }
     }
 
     /**
@@ -551,21 +507,112 @@ public final class MoreFiles {
     }
 
     /**
-     * Given a {@code Path} representing a directory, retrieve the list of files
-     * and directories contained in that {@code Path} as a {@code List}. The
-     * {@code Path} objects are obtained as if by resolving the name of the
-     * directory objects against the given {@code Path}.
+     * Gets a list of the files and directories in the given directory. The
+     * returned paths are {@linkplain Path#resolve(Path) resolved} against the
+     * given path.
      *
-     * @param directoryPath The {@code Path} to get the directory entries for
+     * @param dir the {@code Path} to list
      *
-     * @return A list of {@code Path} objects representing the directory entries
-     *
-     * @throws IOException If an I/O error occurs while accessing the path
+     * @throws IOException if an I/O error occurs while listing entries
      */
-    public static List<Path> listDirectory(Path directoryPath) throws IOException {
-        try (DirectoryStream<Path> directoryStream = Files.newDirectoryStream(directoryPath)) {
-            return Lists.newArrayList(directoryStream);
+    public static List<Path> listDirectory(Path dir) throws IOException {
+        try (DirectoryStream<Path> entries = Files.newDirectoryStream(dir)) {
+            return Lists.newArrayList(entries);
         }
+    }
+
+    /**
+     * Gets a list of the files in the given directory. The returned paths are
+     * {@linkplain Path#resolve(Path) resolved} against the given path.
+     *
+     * @param dir the {@code Path} to list
+     *
+     * @throws IOException if an I/O error occurs while listing entries
+     */
+    public static List<Path> listDirectoryFiles(Path dir) throws IOException {
+        try (DirectoryStream<Path> entries = Files.newDirectoryStream(dir, regularFileFilter())) {
+            return Lists.newArrayList(entries);
+        }
+    }
+
+    private enum ListDirectoryMode {
+        FILES, DIRS;
+
+        private static Set<ListDirectoryMode> all() {
+            return EnumSet.allOf(ListDirectoryMode.class);
+        }
+
+        private static Set<ListDirectoryMode> filesOnly() {
+            return EnumSet.of(FILES);
+        }
+    }
+
+    /**
+     * A {@code FileVisitor} that builds a list of {@code Path} objects it visits.
+     *
+     * @author jyu
+     * @author bkeyes
+     */
+    private static final class ListVisitor extends SimpleFileVisitor<Path> {
+        private final Set<ListDirectoryMode> mode;
+        private final ArrayList<Path> paths;
+
+        ListVisitor(Set<ListDirectoryMode> mode) {
+            this.mode = mode;
+            paths = new ArrayList<>();
+        }
+
+        @Override
+        public FileVisitResult preVisitDirectory(Path dir, BasicFileAttributes attrs)
+                throws IOException {
+            if (mode.contains(ListDirectoryMode.DIRS)) {
+                paths.add(dir);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        @Override
+        public FileVisitResult visitFile(Path file, BasicFileAttributes attrs)
+                throws IOException {
+            if (mode.contains(ListDirectoryMode.FILES)) {
+                paths.add(file);
+            }
+            return FileVisitResult.CONTINUE;
+        }
+
+        public List<Path> getPaths() {
+            return paths;
+        }
+    }
+
+    /**
+     * Gets a list of the files and directories in the given directory and all
+     * sub-directories. The returned paths are {@linkplain Path#resolve(Path)
+     * resolved} against the given path.
+     *
+     * @param dir the {@code Path} to list
+     *
+     * @throws IOException if an I/O error occurs while descending the file tree
+     */
+    public static List<Path> listDirectoryRecursive(Path dir) throws IOException {
+        ListVisitor visitor = new ListVisitor(ListDirectoryMode.all());
+        Files.walkFileTree(dir, visitor);
+        return visitor.getPaths();
+    }
+
+    /**
+     * Gets a list of the files in the given directory and all sub-directories.
+     * The returned paths are {@linkplain Path#resolve(Path) resolved} against
+     * the given path.
+     *
+     * @param dir the {@code Path} to list
+     *
+     * @throws IOException if an I/O error occurs while descending the file tree
+     */
+    public static List<Path> listDirectoryFilesRecursive(Path dir) throws IOException {
+        ListVisitor visitor = new ListVisitor(ListDirectoryMode.filesOnly());
+        Files.walkFileTree(dir, visitor);
+        return visitor.getPaths();
     }
 
     /**

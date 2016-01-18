@@ -8,6 +8,8 @@ outlines patterns to avoid, highlights potentially surprising behavior, and
 gives examples of "giraffesque" code. It also discusses the rational for API
 choices when appropriate or enlightening.
 
+.. contents:: :local:
+
 .. javaimport::
    java.nio.file.*
    com.palantir.giraffe.command.*
@@ -180,6 +182,15 @@ any file system. It defines a consistent syntax for path strings and can be
 converted to and from real paths. Consider using ``UniformPath`` when opening a
 real file system is impractical or when paths from multiple file systems are
 combined.
+
+Use ``MoreFiles.copyLarge`` for large files
+-------------------------------------------
+
+When copying files between different systems, :javaref:`Files#copy` uses stream
+operations to perform the copy. This can be quite slow, particularly for
+local-to-remote and remote-to-local transfers. :javaref:`MoreFiles#copyLarge`
+is significantly faster in these cases and is no slower than the standard copy
+method in the worst case.
 
 Know and use library methods
 ----------------------------

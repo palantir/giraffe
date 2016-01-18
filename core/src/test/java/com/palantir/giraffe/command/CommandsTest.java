@@ -247,7 +247,7 @@ public class CommandsTest {
         commandFuture.succeed(result, 10);
 
         try {
-            ActionResult actionResult = future.get(100, TimeUnit.MILLISECONDS);
+            ActionResult actionResult = future.get(500, TimeUnit.MILLISECONDS);
             assertEquals("wrong result", result, actionResult.result);
         } catch (TimeoutException e) {
             fail("after success, " + name + " did not return in time");
@@ -265,7 +265,7 @@ public class CommandsTest {
         commandFuture.failWithException(exception, 10);
 
         try {
-            future.get(100, TimeUnit.MILLISECONDS);
+            future.get(500, TimeUnit.MILLISECONDS);
             fail(name + " returned successfully");
         } catch (TimeoutException e) {
             fail("after failure, " + name + " did not return in time");
@@ -280,7 +280,7 @@ public class CommandsTest {
         startLatch.await();
 
         try {
-            future.get(100, TimeUnit.MILLISECONDS);
+            future.get(500, TimeUnit.MILLISECONDS);
             fail(name + " returned successfully");
         } catch (TimeoutException e) {
             fail("after timeout, " + name + " did not return in time");
@@ -305,7 +305,7 @@ public class CommandsTest {
         } catch (TimeoutException expected) {
             commandFuture.succeed(null, 0);
             try {
-                ActionResult actionResult = future.get(100, TimeUnit.MILLISECONDS);
+                ActionResult actionResult = future.get(500, TimeUnit.MILLISECONDS);
                 assertTrue(name + " thread was not interrupted", actionResult.interrupted);
             } catch (TimeoutException e) {
                 fail("after success, " + name + " did not return in time");
