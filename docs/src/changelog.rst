@@ -2,10 +2,30 @@
 Changelog
 *********
 
+0.8.0
+=====
+
+`GitHub Milestone <https://github.com/palantir/giraffe/milestones/0.8.0>`__
+
+New Features
+------------
+
+- Add support for Kerberos authentication
+- Add ``MoreFiles.listDirectoryRecursive``
+- Add ``MoreFiles.listDirectoryFiles`` which excludes child directories
+
+Fixes and Improvements
+----------------------
+
+- Update SSHJ to 0.15.0
+- Check for loops in recursive copy
+- Fix recursive copy on Windows
+- Fix typo in ``AbstractCommand#toString()``
+
 0.7.0
 =====
 
-Initial open-source release! `GitHub Milestone <https://github.com/palantir/giraffe/milestones/0.7.0>`_
+Initial open-source release! `GitHub Milestone <https://github.com/palantir/giraffe/milestones/0.7.0>`__
 
 New Features
 ------------
