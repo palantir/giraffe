@@ -6,12 +6,13 @@ cache:
   - ".gradle"
 install: true
 script:
-- ./gradlew build publish --stacktrace --info
+- "./gradlew build publish --stacktrace --info"
 deploy:
   provider: releases
   api_key:
-    secure: pZVEZWEPd5e83ZE8/h51PO2lYOyjQ2aLBfBEqJ0EJVkpvZPvw5Zs16J2w/PoZOP+K5nvO8bdLZft9mzzaOLl6tQi1acYJyoHgZ2MSpPdFN5MpkC6BOIZ9Ih2bPDKdRC3sHGlEu53RWZ3L7Ck2CxVKZKa/SZzBWZ16bGWZ8NgjII=
+    secure: LV2TOF6pZyYZfk0QDYG3RH1c/BnaGF7nKAiqmqlMaV3g2ytrgjX81UQML1UZcWfns5EFcezNT+sWwx+WT9udzVVLAB6Y4R2zC+nIbPTOAe5+L7dHZqtWQ7xdl10BqNy3wF9PcDclmo2cciveZVFTA12u5IyzwQ1g3lk3nTrHDRa0D1ASXQO+FWwnMQHJDj8n2VA0CulvsJacoH/F/2W5jGuAKFyCIfy5fq1KGNN8fyUrC+zt/F726VmSv7paOGRzwMmEYWwMqAiUGwxSDS+p2DauTFlG7BhCDSLlweRKVKWWeEuudsHy1ry8Je9ay/def4hoRzJNBLitgI3YlF6s+/n952f2tfwkLgtj02Ol+a3gZhS91F8vVsYSzaorN4sz1cFsWX1VDdmmW2zT6EyAM/HrLXSykh5c6/8AD6jOMrTm/t/WVjRRquh3qtHemvGfZy0OULogjNWrqTqMN4OI/gTEMl+6BWSWHDWzRFZ+AOs37VPhUx/9dvF9yzy6hIlYV6RWu8Fa+xXYp0CsCXKG3tC+HZXyo3gibxf/4O/ddRiiVBymRgzuo4JAz8edzDQDtRJ1lPoRl2AiJSQxRTGx4LYfSbW+dHQnl/fm6htkO/IosSaV4xC5gVTVD67ftZ/MptauvcnLE1+cBxAs05e9v53jUDhFeCyvQDUt+mTHxA0=
   file: build/distributions/*
   file_glob: true
   on:
     tags: true
+    repo: palantir/giraffe
