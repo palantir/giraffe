@@ -22,14 +22,14 @@ different hosts. It aims to feel like an extension of the standard library,
 integrating with and taking inspiration from the <code>java.nio.file</code>
 package.</p>
 
-{% assign releases = site.data.releases | sort 'released' | reverse %}
+{% assign releases = site.data.releases | sort: 'released' | reverse %}
 <div class="latest">
     {% assign release = releases | first %}
     <h3>Latest Release: <span class="release-version">{{ release.version }}</span></h3>
     {% include release_links.html %}
     <div class="maven-info">
         <p><b>Maven Coordinates:</b> <code>com.palantir.giraffe:giraffe-(core|ssh):{{ release.version }}</code></p>
-        <p><b>Repository:</b> <code>https://dl.bintray.com/palantir/releases</code></p>
+        <p><b>Repository:</b> <code>https://jcenter.bintray.com</code></p>
     </div>
 </div>
 

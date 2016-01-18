@@ -1,0 +1,194 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>About Version Numbers &mdash; Giraffe 0.8.0 documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/giraffe.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.0',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="top" title="Giraffe 0.8.0 documentation" href="index.html" />
+    <link rel="prev" title="Changelog" href="changelog.html" />
+   
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="about-version-numbers">
+<h1>About Version Numbers<a class="headerlink" href="#about-version-numbers" title="Permalink to this headline">¶</a></h1>
+<p>Giraffe is <a class="reference external" href="http://semver.org/">semantically versioned</a> with respect to the <em>client</em> public
+API. It follows a modified scheme for the <em>extender</em> public API.</p>
+<p>The public APIs and version schemes are defined for clarity and completeness.
+As a result, many &#8220;major&#8221; releases may be safe, routine updates most users.
+Always check the changelog before deciding whether or not to update to a new
+release.</p>
+<div class="section" id="client-api">
+<h2>Client API<a class="headerlink" href="#client-api" title="Permalink to this headline">¶</a></h2>
+<p>The client API defines compatibility for users who do <em>not</em> extend any
+Giraffe classes or interfaces and includes:</p>
+<ol class="arabic simple">
+<li>All public classes and interfaces in the following packages, the methods of
+these types, and any behavior documented by or in relation to these types.<ul>
+<li><code class="docutils literal"><span class="pre">com.palantir.giraffe</span></code></li>
+<li><code class="docutils literal"><span class="pre">com.palantir.giraffe.command</span></code></li>
+<li><code class="docutils literal"><span class="pre">com.palantir.giraffe.command.interactive</span></code></li>
+<li><code class="docutils literal"><span class="pre">com.palantir.giraffe.command.spi</span></code></li>
+<li><code class="docutils literal"><span class="pre">com.palantir.giraffe.file</span></code></li>
+<li><code class="docutils literal"><span class="pre">com.palantir.giraffe.host</span></code></li>
+<li><code class="docutils literal"><span class="pre">com.palantir.giraffe.ssh</span></code></li>
+</ul>
+</li>
+<li>The existence of dependencies exposed by the types in (1)</li>
+<li>The minimum versions of the dependencies in (2)</li>
+</ol>
+<p>Incompatible <a class="footnote-reference" href="#comp" id="id1">[1]</a> changes to any of these items result in a new MAJOR version
+number. Incompatible changes to the client API are primarily removals. In other
+words, any change that breaks code that calls methods on Giraffe types.</p>
+</div>
+<div class="section" id="extender-api">
+<h2>Extender API<a class="headerlink" href="#extender-api" title="Permalink to this headline">¶</a></h2>
+<p>The extender API defines compatibility for users who extend Giraffe
+classes, either to add functionality or to implement a system provider. It
+includes:</p>
+<ol class="arabic simple">
+<li>All public classes and interfaces in the packages defined by the client API
+and the following packages, the methods of these types, and any behavior
+documented by or in relation to these types.<ul>
+<li><code class="docutils literal"><span class="pre">com.palantir.giraffe.file.base</span></code></li>
+</ul>
+</li>
+<li>The existence of dependencies exposed by the types in (1)</li>
+<li>The minimum versions of the dependencies in (2)</li>
+</ol>
+<p>Incompatible changes to any of these items that are <em>not</em> part of the client
+API result in a new MINOR version number. Incompatible changes to the
+extender API are primarily additions to client API classes and removals,
+additions, and modifications to other classes. In other words, any change that
+breaks code that extends or implements Giraffe types.</p>
+</div>
+<div class="section" id="modifications">
+<h2>Modifications<a class="headerlink" href="#modifications" title="Permalink to this headline">¶</a></h2>
+<p>We reserve the ability to change any undocumented implementation details in the
+interest of fixing bugs, improving code quality, or improving performance. If
+you depend on undocumented observed behavior that you think should be defined,
+please file an issue.</p>
+<p>We also reserve the ability to add, remove, or update dependencies that are not
+exposed by public types.</p>
+<p>The definition of the public API may expand at any time. Removing any elements
+from the definition requires a major version number change.</p>
+<p class="rubric">Footnotes</p>
+<table class="docutils footnote" frame="void" id="comp" rules="none">
+<colgroup><col class="label" /><col /></colgroup>
+<tbody valign="top">
+<tr><td class="label"><a class="fn-backref" href="#id1">[1]</a></td><td>For classes and interfaces in both APIs, &#8220;incompatible&#8221; refers to <em>compile</em>
+compatibility, not <em>binary</em> compatibility.</td></tr>
+</tbody>
+</table>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Giraffe</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Giraffe Basics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="effective_giraffe.html">Effective Giraffe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Documentation</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="">About Version Numbers</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#client-api">Client API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#extender-api">Extender API</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#modifications">Modifications</a></li>
+</ul>
+</li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/palantir/giraffe">GitHub</a></li>
+    
+    <li class="toctree-l1"><a href="http://palantir.github.io/giraffe/">Main Page</a></li>
+    
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2016, Palantir Technologies.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.3.4</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.7</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
