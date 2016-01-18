@@ -11,18 +11,17 @@ Installing
 ==========
 
 Giraffe is published as a Maven-style artifact, but we recommend using
-Gradle_ for builds::
+Gradle_ for builds:
+
+.. code-block:: groovy
 
     repositories {
-        mavenCentral()
-        maven {
-            url 'http://dl.bintray.com/palantir/releases'
-        }
+        jcenter()
     }
 
     dependencies {
-        compile 'com.palantir.giraffe:giraffe-core:0.7.0'
         compile 'com.palantir.giraffe:giraffe-ssh:0.7.0'
+        // or 'com.palantir.giraffe:giraffe-core:0.7.0' for local features only
     }
 
 .. _Gradle: https://gradle.org/
@@ -43,24 +42,24 @@ Learn More
 ==========
 
 For details on best practices and anti-patterns, see :doc:`effective_giraffe`.
-For low-level details, see the full `API documentation`_.
+For low-level details, see the full :doc:`api/index`.
 
 .. toctree::
    :maxdepth: 2
 
    effective_giraffe
-   public_api
-
-.. _API documentation: api/index.html
+   api/index
 
 Release History
 ===============
 
 The list of changes in this release and all previous releases can be found in
-the :doc:`changelog`.
+the :doc:`changelog`. To understand how version numbers correspond to API
+changes, see :doc:`version_numbers`.
 
 .. toctree::
    :hidden:
    :maxdepth: 2
 
    changelog
+   version_numbers

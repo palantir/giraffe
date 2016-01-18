@@ -1,6 +1,6 @@
-**********
-Public API
-**********
+*********************
+About Version Numbers
+*********************
 
 Giraffe is `semantically versioned <semver_>`_ with respect to the *client* public
 API. It follows a modified scheme for the *extender* public API.
