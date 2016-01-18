@@ -8,6 +8,8 @@ outlines patterns to avoid, highlights potentially surprising behavior, and
 gives examples of "giraffesque" code. It also discusses the rational for API
 choices when appropriate or enlightening.
 
+.. contents:: :local:
+
 .. javaimport::
    java.nio.file.*
    com.palantir.giraffe.command.*
