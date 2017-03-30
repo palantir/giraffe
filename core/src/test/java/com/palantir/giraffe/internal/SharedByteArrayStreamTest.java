@@ -146,4 +146,9 @@ public class SharedByteArrayStreamTest {
     public void testEvenPowerOfTwoExpansion() {
         assertTrue(stream.computeResize(0, 3, 1) > 0);
     }
+
+    @Test
+    public void testEvenPowerOfTwoExpansionIndirect() throws IOException {
+        stream.getOutputStream().write(new byte[2047]);
+    }
 }
