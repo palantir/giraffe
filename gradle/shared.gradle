@@ -26,10 +26,6 @@ checkstyle {
 eclipse {
     classpath {
         defaultOutputDir = file('ecbuild')
-
-        def containerType = 'org.eclipse.jdt.launching.JRE_CONTAINER'
-        containers.remove(containerType)
-        containers "${containerType}/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/JavaSE-1.7"
     }
 }
 
@@ -96,12 +92,14 @@ publishing {
 }
 
 task resolveDependencies {
-    description = 'Forces the resolution of all dependencies in all configurations'
+    description = 'Forces the resolution of all dependencies in all configurations.'
     group = 'build'
 
     doLast {
         configurations.all { c ->
-            c.resolve()
+            if (c.canBeResolved) {
+                c.resolve()
+            }
         }
     }
 }
