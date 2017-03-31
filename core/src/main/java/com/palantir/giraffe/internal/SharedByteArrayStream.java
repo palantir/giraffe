@@ -418,7 +418,7 @@ final class SharedByteArrayStream {
 
         // long to avoid int overflow during computation
         long additional = 0;
-        for (int i = 1; additional + available < needed; i++) {
+        for (int i = 1; additional + available <= needed; i++) {
             // double length each iteration (2^i - 1, to account for initial length)
             additional = (long) length * ((1 << i) - 1);
         }

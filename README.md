@@ -1,12 +1,12 @@
 <img src="docs/src/static/logo.png?raw=true" alt="The Giraffe logo, a giraffe wearing glasses" width="120" height ="120"/>
 
-# Giraffe [![Build Status](https://travis-ci.org/palantir/giraffe.svg?branch=develop)](https://travis-ci.org/palantir/giraffe)
+# Giraffe [![CircleCI](https://circleci.com/gh/palantir/giraffe/tree/develop.svg?style=svg)](https://circleci.com/gh/palantir/giraffe/tree/develop)
 
 Gracefully Integrated Remote Access For Files and Execution
 > A long neck to reach far-away places
 
 - [Home](http://palantir.github.io/giraffe/)
-- [Documentation](http://palantir.github.io/giraffe/docs/0.8.0/)
+- [Documentation](http://palantir.github.io/giraffe/docs/0.8.1/)
 
 ## Overview
 
@@ -39,8 +39,8 @@ repositories {
 }
 
 dependencies {
-    compile 'com.palantir.giraffe:giraffe-ssh:0.8.0'
-    // or 'com.palantir.giraffe:giraffe-core:0.8.0' for local features only
+    compile 'com.palantir.giraffe:giraffe-ssh:0.8.1'
+    // or 'com.palantir.giraffe:giraffe-core:0.8.1' for local features only
 }
 ```
 

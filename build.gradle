@@ -1,9 +1,6 @@
 buildscript {
     repositories {
-        mavenCentral()
-        maven {
-            url 'http://dl.bintray.com/palantir/releases/'
-        }
+        jcenter()
         maven {
             url 'https://plugins.gradle.org/m2/'
         }
@@ -21,17 +18,17 @@ apply from: 'gradle/versions.gradle'
 
 addPrintVersionTask()
 flexversion {
-    envvarSources << 'TRAVIS_BRANCH'
+    envvarSources << 'CIRCLE_BRANCH'
     useTags = true
 }
 
 version flexVersion()
 group = 'com.palantir.giraffe'
 
-ext.localPublishDir = "${buildDir}/localpublish"
+ext.localPublishDir = "${buildDir}/m2"
 
 task distZip(type: Zip) {
-    dependsOn (['core', 'ssh', 'fs-base', 'test-util'].collect { ":giraffe-${it}:publish" })
+    dependsOn (['core', 'ssh', 'fs-base', 'test-util'].collect { ":giraffe-${it}:publishJavaPublicationToLocalRepository" })
 
     from (localPublishDir) {
         exclude '**/maven-metadata.xml*'

@@ -1,0 +1,16 @@
+if (System.env.CIRCLE_ARTIFACTS) {
+    task copyCircleArtifacts(type: Copy) {
+        group = "verification"
+        description = "Copies artifacts to the CircleCI artifacts directory."
+        outputs.upToDateWhen { false }
+
+        from "${buildDir}/reports"
+        into "${System.env.CIRCLE_ARTIFACTS}/${project.name}/reports"
+    }
+}
+
+if (System.env.CIRCLE_TEST_REPORTS) {
+    tasks.withType(Test).all { test ->
+        test.reports.junitXml.destination = new File(System.env.CIRCLE_TEST_REPORTS, "junit/${project.name}")
+    }
+}
