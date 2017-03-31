@@ -2,6 +2,15 @@
 Changelog
 *********
 
+0.8.1
+=====
+
+Fixes and Improvements
+----------------------
+
+- Fix buffer resize bug that could lead to an ``IOException``
+- Upgrade Gradle to the latest version and modernize build tooling
+
 0.8.0
 =====
 
