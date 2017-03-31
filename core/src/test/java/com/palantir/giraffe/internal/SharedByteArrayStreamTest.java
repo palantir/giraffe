@@ -111,6 +111,12 @@ public class SharedByteArrayStreamTest {
     }
 
     @Test
+    public void computeResizeExact() {
+        int newLength = stream.computeResize(0, 3, 1);
+        assertEquals("length is incorrect", 8, newLength);
+    }
+
+    @Test
     public void computeResizeGrowsByPowersOf2() {
         int newLength = stream.computeResize(5, 100, 10);
         assertEquals("length is incorrect", 160, newLength);
