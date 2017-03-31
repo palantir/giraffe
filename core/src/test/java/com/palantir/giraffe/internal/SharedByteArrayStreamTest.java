@@ -17,6 +17,7 @@ package com.palantir.giraffe.internal;
 
 import static org.junit.Assert.assertArrayEquals;
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -145,5 +146,15 @@ public class SharedByteArrayStreamTest {
                 "incorrect data",
                 Arrays.copyOfRange(expected, off, off + len),
                 Arrays.copyOfRange(actual, 0, len));
+    }
+
+    @Test
+    public void testEvenPowerOfTwoExpansion() {
+        assertTrue(stream.computeResize(0, 3, 1) > 0);
+    }
+
+    @Test
+    public void testEvenPowerOfTwoExpansionIndirect() throws IOException {
+        stream.getOutputStream().write(new byte[2047]);
     }
 }
