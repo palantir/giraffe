@@ -18,7 +18,7 @@ apply from: 'gradle/versions.gradle'
 
 addPrintVersionTask()
 flexversion {
-    envvarSources << 'TRAVIS_BRANCH'
+    envvarSources << 'CIRCLE_BRANCH'
     useTags = true
 }
 
