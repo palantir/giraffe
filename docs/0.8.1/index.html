@@ -1,0 +1,179 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Giraffe &#8212; Giraffe 0.8.1 documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/giraffe.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Giraffe Basics" href="guide.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="giraffe">
+<h1>Giraffe<a class="headerlink" href="#giraffe" title="Permalink to this headline">¶</a></h1>
+<p>This is the documentation for version 0.8.1 of Giraffe. For older or newer
+versions, see the <a class="reference external" href="http://palantir.github.io/giraffe/">main site</a>.</p>
+<div class="section" id="installing">
+<h2>Installing<a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h2>
+<p>Giraffe is published as a Maven-style artifact, but we recommend using
+<a class="reference external" href="https://gradle.org/">Gradle</a> for builds:</p>
+<div class="highlight-groovy"><div class="highlight"><pre><span></span><span class="n">repositories</span> <span class="o">{</span>
+    <span class="n">jcenter</span><span class="o">()</span>
+<span class="o">}</span>
+
+<span class="n">dependencies</span> <span class="o">{</span>
+    <span class="n">compile</span> <span class="s1">&#39;com.palantir.giraffe:giraffe-ssh:0.8.1&#39;</span>
+    <span class="c1">// or &#39;com.palantir.giraffe:giraffe-core:0.8.1&#39; for local features only</span>
+<span class="o">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="overview">
+<h2>Overview<a class="headerlink" href="#overview" title="Permalink to this headline">¶</a></h2>
+<p>New users or users looking for a summary of functionality should read
+<a class="reference internal" href="guide.html"><span class="doc">Giraffe Basics</span></a>. This will enable you to start writing code that uses Giraffe and
+give you the background assumed by the rest of the documentation.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Giraffe Basics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#accessing-files">Accessing Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="guide.html#executing-commands">Executing Commands</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="learn-more">
+<h2>Learn More<a class="headerlink" href="#learn-more" title="Permalink to this headline">¶</a></h2>
+<p>For details on best practices and anti-patterns, see <a class="reference internal" href="effective_giraffe.html"><span class="doc">Effective Giraffe</span></a>.
+For low-level details, see the full <a class="reference internal" href="api/index.html"><span class="doc">API Documentation</span></a>.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="effective_giraffe.html">Effective Giraffe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="effective_giraffe.html#connection-management">Connection Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="effective_giraffe.html#exception-handling">Exception Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="effective_giraffe.html#file-operations">File Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="effective_giraffe.html#command-execution">Command Execution</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Documentation</a></li>
+</ul>
+</div>
+</div>
+<div class="section" id="release-history">
+<h2>Release History<a class="headerlink" href="#release-history" title="Permalink to this headline">¶</a></h2>
+<p>The list of changes in this release and all previous releases can be found in
+the <a class="reference internal" href="changelog.html"><span class="doc">Changelog</span></a>. To understand how version numbers correspond to API
+changes, see <a class="reference internal" href="version_numbers.html"><span class="doc">About Version Numbers</span></a>.</p>
+<div class="toctree-wrapper compound">
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="#">
+    <img class="logo" src="static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Giraffe</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Giraffe Basics</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="effective_giraffe.html">Effective Giraffe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_numbers.html">About Version Numbers</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/palantir/giraffe">GitHub</a></li>
+    
+    <li class="toctree-l1"><a href="http://palantir.github.io/giraffe/">Main Page</a></li>
+    
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Palantir Technologies.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>

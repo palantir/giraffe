@@ -1,6 +1,10 @@
 _site
 .sass-cache
 
+# bundler directories
+.bundle/
+vendor/
+
 # ignore files from develop/master
 .gradle/
 

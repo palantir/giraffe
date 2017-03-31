@@ -1,0 +1,15 @@
+a code, .rst-content a tt {
+    color: inherit;
+    font-size: 85%;
+    border: none;
+    padding: 0;
+}
+
+div.tip {
+    background-color: #efe;
+    border-color: #cdc;
+}
+
+.epigraph {
+    font-style: italic;
+}

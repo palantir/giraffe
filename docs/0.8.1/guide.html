@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Giraffe Basics &#8212; Giraffe 0.8.1 documentation</title>
+    
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" href="static/giraffe.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    './',
+        VERSION:     '0.8.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true,
+        SOURCELINK_SUFFIX: '.txt'
+      };
+    </script>
+    <script type="text/javascript" src="static/jquery.js"></script>
+    <script type="text/javascript" src="static/underscore.js"></script>
+    <script type="text/javascript" src="static/doctools.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Effective Giraffe" href="effective_giraffe.html" />
+    <link rel="prev" title="Giraffe" href="index.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head>
+  <body role="document">
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body" role="main">
+            
+  <div class="section" id="giraffe-basics">
+<h1>Giraffe Basics<a class="headerlink" href="#giraffe-basics" title="Permalink to this headline">¶</a></h1>
+<p>This guide covers the basic features of Giraffe and is a good introduction for
+new users.</p>
+<div class="section" id="accessing-files">
+<h2>Accessing Files<a class="headerlink" href="#accessing-files" title="Permalink to this headline">¶</a></h2>
+<p>To do anything with a file or directory, you need a <a class="reference external" href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/Path.html"><code class="docutils literal"><span class="pre">Path</span></code></a>. A <code class="docutils literal"><span class="pre">Path</span></code>
+combines a path string with a <a class="reference external" href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/FileSystem.html"><code class="docutils literal"><span class="pre">FileSystem</span></code></a> that can interpret the
+string. This configuration isn&#8217;t unique to Giraffe and is actually part of the
+<a class="reference external" href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/package-summary.html"><code class="docutils literal"><span class="pre">java.nio.file</span></code></a> API introduced in Java 7.</p>
+<p>You can get a path from a <code class="docutils literal"><span class="pre">FileSystem</span></code> or, if you are only using the local
+file system, a static factory method:</p>
+<div class="highlight-java"><div class="highlight"><pre><span></span><span class="c1">// local paths</span>
+<span class="n">Path</span> <span class="n">logo</span> <span class="o">=</span> <span class="n">Paths</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;resources/images/kittens.png&quot;</span><span class="o">);</span>
+<span class="n">Path</span> <span class="n">betterLogo</span> <span class="o">=</span> <span class="n">Paths</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;resources&quot;</span><span class="o">,</span> <span class="s">&quot;images&quot;</span><span class="o">,</span> <span class="s">&quot;kittens.gif&quot;</span><span class="o">);</span>
+
+<span class="c1">// local or remote, depending on fileSystem</span>
+<span class="n">Path</span> <span class="n">bestLogo</span> <span class="o">=</span> <span class="n">fileSystem</span><span class="o">.</span><span class="na">getPath</span><span class="o">(</span><span class="s">&quot;resources/images&quot;</span><span class="o">,</span> <span class="s">&quot;laser_kittens.gif&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>The factory methods take full path strings, path components, or some mix of the
+two. Path strings must use the same syntax as the file system, so providing
+individual components is safer with systems of unknown origin.</p>
+<p>You can also build a path by adding to an existing one:</p>
+<div class="highlight-java"><div class="highlight"><pre><span></span><span class="n">Path</span> <span class="n">images</span> <span class="o">=</span> <span class="n">Paths</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;resources/images&quot;</span><span class="o">);</span>
+<span class="n">Path</span> <span class="n">sloths</span> <span class="o">=</span> <span class="n">images</span><span class="o">.</span><span class="na">resolve</span><span class="o">(</span><span class="s">&quot;sloths.gif&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>Because <code class="docutils literal"><span class="pre">Path</span></code> is immutable, methods like <code class="docutils literal"><span class="pre">resolve</span></code> return new objects and
+the original path is not modified.</p>
+<p>To manipulate or access the file or directory given by a path, use the methods
+in <a class="reference external" href="http://docs.oracle.com/javase/7/docs/api/java/nio/file/Files.html"><code class="docutils literal"><span class="pre">Files</span></code></a> and <a class="reference external" href="api/com/palantir/giraffe/file/MoreFiles.html"><code class="docutils literal"><span class="pre">MoreFiles</span></code></a>:</p>
+<div class="highlight-java"><div class="highlight"><pre><span></span><span class="n">Path</span> <span class="n">data</span> <span class="o">=</span> <span class="n">Paths</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;/var/data&quot;</span><span class="o">);</span>
+<span class="n">Files</span><span class="o">.</span><span class="na">createDirectory</span><span class="o">(</span><span class="n">data</span><span class="o">);</span>
+<span class="n">MoreFiles</span><span class="o">.</span><span class="na">writeString</span><span class="o">(</span><span class="n">data</span><span class="o">.</span><span class="na">resolve</span><span class="o">(</span><span class="s">&quot;json.yaml&quot;</span><span class="o">),</span> <span class="n">getJson</span><span class="o">(),</span> <span class="n">StandardCharsets</span><span class="o">.</span><span class="na">UTF_8</span><span class="o">);</span>
+<span class="n">Files</span><span class="o">.</span><span class="na">copy</span><span class="o">(</span><span class="n">Paths</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;text.bin&quot;</span><span class="o">),</span> <span class="n">data</span><span class="o">.</span><span class="na">resolve</span><span class="o">(</span><span class="s">&quot;bin.sh&quot;</span><span class="o">));</span>
+</pre></div>
+</div>
+<p>Take some time to explore the full APIs for these two classes, as they define
+all of the operations you can perform on files and directories.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">The methods on <code class="docutils literal"><span class="pre">Files</span></code> and <code class="docutils literal"><span class="pre">MoreFiles</span></code> only work with paths from open file
+systems. Once you close a file system, all <code class="docutils literal"><span class="pre">Path</span></code> objects associated with
+it are effectively useless.</p>
+</div>
+</div>
+<div class="section" id="executing-commands">
+<h2>Executing Commands<a class="headerlink" href="#executing-commands" title="Permalink to this headline">¶</a></h2>
+<p>To execute any external process, you need a <a class="reference external" href="api/com/palantir/giraffe/command/Command.html"><code class="docutils literal"><span class="pre">Command</span></code></a>. A <code class="docutils literal"><span class="pre">Command</span></code>
+combines the name or path of an executable with a set of arguments and a
+<a class="reference external" href="api/com/palantir/giraffe/command/ExecutionSystem.html"><code class="docutils literal"><span class="pre">ExecutionSystem</span></code></a> that can run the executable.</p>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">The command execution API intentionally follows the pattern of the file
+system API, with <code class="docutils literal"><span class="pre">Command</span></code> taking the place of <code class="docutils literal"><span class="pre">Path</span></code> and
+<code class="docutils literal"><span class="pre">ExecutionSystem</span></code> taking the place of <code class="docutils literal"><span class="pre">FileSystem</span></code>. If you understand
+how to use one, the other should feel familiar.</p>
+</div>
+<p>You can get a command from an <code class="docutils literal"><span class="pre">ExecutionSystem</span></code> or, if you are only running
+executables on the local system, a static factory method:</p>
+<div class="highlight-java"><div class="highlight"><pre><span></span><span class="c1">// local commands</span>
+<span class="n">Command</span> <span class="n">server</span> <span class="o">=</span> <span class="n">Commands</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;bin/kitten.sh&quot;</span><span class="o">,</span> <span class="s">&quot;--verbose&quot;</span><span class="o">,</span> <span class="s">&quot;string.txt&quot;</span><span class="o">);</span>
+<span class="n">Command</span> <span class="n">betterServer</span> <span class="o">=</span> <span class="n">Commands</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="n">Paths</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;bin/freeKitten.sh&quot;</span><span class="o">),</span> <span class="s">&quot;--debug&quot;</span><span class="o">,</span> <span class="s">&quot;--type&quot;</span><span class="o">,</span> <span class="s">&quot;spiders&quot;</span><span class="o">);</span>
+
+<span class="c1">// local or remote, depending on execSystem</span>
+<span class="n">Command</span> <span class="n">bestServer</span> <span class="o">=</span> <span class="n">execSystem</span><span class="o">.</span><span class="na">getCommand</span><span class="o">(</span><span class="s">&quot;laserKitten.sh&quot;</span><span class="o">,</span> <span class="s">&quot;-n&quot;</span><span class="o">,</span> <span class="mi">1000</span><span class="o">,</span> <span class="s">&quot;-o&quot;</span><span class="o">,</span> <span class="s">&quot;/tmp/litter&quot;</span><span class="o">);</span>
+</pre></div>
+</div>
+<p>The executable can be a name, a path string, or a <code class="docutils literal"><span class="pre">Path</span></code>. When given a name,
+a system-dependent method is used to find the executable, usually using the
+value of the <code class="docutils literal"><span class="pre">PATH</span></code> environment variable. Any additional parameters are
+passed to the command as arguments. Arguments can have any type and are
+automatically converted to strings and <a class="reference internal" href="effective_giraffe.html#command-escaping"><span class="std std-ref">escaped</span></a>.</p>
+<p>For commands with more complicated arguments, use <a class="reference external" href="api/com/palantir/giraffe/command/Command.Builder.html"><code class="docutils literal"><span class="pre">Command.Builder</span></code></a>:</p>
+<div class="highlight-java"><div class="highlight"><pre><span></span><span class="n">Command</span><span class="o">.</span><span class="na">Builder</span> <span class="n">builder</span> <span class="o">=</span> <span class="n">Commands</span><span class="o">.</span><span class="na">getBuilder</span><span class="o">(</span><span class="s">&quot;sloth-parse&quot;</span><span class="o">);</span>
+<span class="n">builder</span><span class="o">.</span><span class="na">addArgument</span><span class="o">(</span><span class="s">&quot;--use-tree&quot;</span><span class="o">);</span>
+<span class="n">builder</span><span class="o">.</span><span class="na">addArguments</span><span class="o">(</span><span class="s">&quot;--speed&quot;</span><span class="o">,</span> <span class="s">&quot;slow&quot;</span><span class="o">,</span> <span class="s">&quot;-f&quot;</span><span class="o">,</span> <span class="n">Paths</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;leaves.sloth&quot;</span><span class="o">));</span>
+
+<span class="n">List</span><span class="o">&lt;</span><span class="n">String</span><span class="o">&gt;</span> <span class="n">outputArgs</span> <span class="o">=</span> <span class="n">getOutputArgs</span><span class="o">();</span>
+<span class="n">builder</span><span class="o">.</span><span class="na">addArguments</span><span class="o">(</span><span class="n">outputArgs</span><span class="o">);</span>
+
+<span class="n">Command</span> <span class="n">slothParse</span> <span class="o">=</span> <span class="n">builder</span><span class="o">.</span><span class="na">build</span><span class="o">();</span>
+</pre></div>
+</div>
+<p>To run a <code class="docutils literal"><span class="pre">Command</span></code>, use the methods in <a class="reference external" href="api/com/palantir/giraffe/command/Commands.html"><code class="docutils literal"><span class="pre">Commands</span></code></a>:</p>
+<div class="highlight-java"><div class="highlight"><pre><span></span><span class="n">Command</span> <span class="n">zeros</span> <span class="o">=</span> <span class="n">Commands</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;ones.py&quot;</span><span class="o">,</span> <span class="s">&quot;--negate&quot;</span><span class="o">,</span> <span class="mi">8</span><span class="o">);</span>
+<span class="n">CommandResult</span> <span class="n">zeroResult</span> <span class="o">=</span> <span class="n">Commands</span><span class="o">.</span><span class="na">execute</span><span class="o">(</span><span class="n">zeros</span><span class="o">);</span>
+<span class="n">assertEquals</span><span class="o">(</span><span class="s">&quot;00000000&quot;</span><span class="o">,</span> <span class="n">zeroResult</span><span class="o">.</span><span class="na">getStdOut</span><span class="o">());</span>
+
+<span class="n">Command</span> <span class="n">ones</span> <span class="o">=</span> <span class="n">Commands</span><span class="o">.</span><span class="na">get</span><span class="o">(</span><span class="s">&quot;ones.py&quot;</span><span class="o">,</span> <span class="s">&quot;--high-precision&quot;</span><span class="o">,</span> <span class="mi">10000</span><span class="o">);</span>
+<span class="n">CommandFuture</span> <span class="n">future</span> <span class="o">=</span> <span class="n">Commands</span><span class="o">.</span><span class="na">executeAsync</span><span class="o">(</span><span class="n">ones</span><span class="o">);</span>
+<span class="n">doImportantThings</span><span class="o">();</span>
+<span class="n">CommandResult</span> <span class="n">oneResult</span> <span class="o">=</span> <span class="n">Commands</span><span class="o">.</span><span class="na">waitFor</span><span class="o">(</span><span class="n">future</span><span class="o">);</span>
+</pre></div>
+</div>
+<p><code class="docutils literal"><span class="pre">Commands</span></code> also provides methods to execute commands with timeouts or with a
+modified environment.</p>
+<p>By default, the various <code class="docutils literal"><span class="pre">execute</span></code> methods assume that successful commands
+exit with status <code class="docutils literal"><span class="pre">0</span></code>, throwing <a class="reference external" href="api/com/palantir/giraffe/command/CommandException.html"><code class="docutils literal"><span class="pre">CommandException</span></code></a> when commands
+exit with a different status. To change this behavior, use a method that takes
+a <code class="docutils literal"><span class="pre">CommandContext</span></code>, setting it to ignore the exit status or check for a
+different condition.</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Giraffe</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Giraffe Basics</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#accessing-files">Accessing Files</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#executing-commands">Executing Commands</a></li>
+</ul>
+</li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="effective_giraffe.html">Effective Giraffe</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_numbers.html">About Version Numbers</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/palantir/giraffe">GitHub</a></li>
+    
+    <li class="toctree-l1"><a href="http://palantir.github.io/giraffe/">Main Page</a></li>
+    
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <div><input type="text" name="q" /></div>
+      <div><input type="submit" value="Go" /></div>
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2017, Palantir Technologies.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.5.3</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.10</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
