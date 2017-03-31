@@ -75,7 +75,7 @@ task sourceJar(type: Jar) {
 
 publishing {
     publications {
-        local(MavenPublication) {
+        java(MavenPublication) {
             from components.java
 
             artifact(sourceJar) {
@@ -86,7 +86,17 @@ publishing {
 
     repositories {
         maven {
+            name "local"
             url localPublishDir
+        }
+
+        maven {
+            name "bintray"
+            url "https://api.bintray.com/content/palantir/releases"
+            credentials {
+                username System.env.BINTRAY_USERNAME
+                password System.env.BINTRAY_PASSWORD
+            }
         }
     }
 }
