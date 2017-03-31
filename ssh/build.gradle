@@ -39,5 +39,5 @@ test {
 }
 
 jacocoCoverage {
-    threshold 0.45, project.name
+    packageThreshold 0.45, 'com/palantir/giraffe'
 }
