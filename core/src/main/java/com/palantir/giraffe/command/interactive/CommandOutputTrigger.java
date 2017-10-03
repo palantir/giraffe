@@ -34,7 +34,7 @@ public final class CommandOutputTrigger extends AbstractStreamWatcher {
      */
     public CommandOutputTrigger(ResponseProvider<Runnable> callbackMap,
                                 CommandFuture commandExecution) {
-        this(callbackMap, commandExecution, MoreExecutors.sameThreadExecutor());
+        this(callbackMap, commandExecution, MoreExecutors.directExecutor());
     }
 
     /**

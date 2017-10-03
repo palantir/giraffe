@@ -1,5 +1,5 @@
 ext.libVersions = [
-    guava:   '18.0',
+    guava:   '23.1-jre',
     slf4j:   '1.7.9',
     jsr305:  '2.0.3',
     junit:   '4.12',
