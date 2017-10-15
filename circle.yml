@@ -11,7 +11,13 @@ dependencies:
 
 test:
   override:
-    - ./gradlew build --console=plain --parallel
+    - ? >
+        case $CIRCLE_NODE_INDEX in
+        0) ./gradlew build --console=plain --parallel ;;
+        1) ./gradlew linuxIntegrationTest --console=plain --parallel ;;
+        esac
+      :
+        parallel: true
   post:
     - ./gradlew copyCircleArtifacts --console=plain --parallel
 
