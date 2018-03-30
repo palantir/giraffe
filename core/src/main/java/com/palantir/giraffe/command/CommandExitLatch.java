@@ -121,7 +121,7 @@ public class CommandExitLatch {
                 public void run() {
                     finish(future);
                 }
-            }, MoreExecutors.sameThreadExecutor());
+            }, MoreExecutors.directExecutor());
         }
     }
 }

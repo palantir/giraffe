@@ -9,8 +9,8 @@ apply plugin: 'com.github.hierynomus.license'
 apply from: rootProject.file('gradle/versions.gradle')
 apply from: rootProject.file('gradle/circle.gradle')
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 version = rootProject.version
 group = rootProject.group

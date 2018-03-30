@@ -68,7 +68,7 @@ final class SshPosixFileAttributes implements AnnotatedPosixFileAttributes {
 
     @Override
     public boolean isSymbolicLink() {
-        return attrs.getMode().getType() == Type.SYMKLINK;
+        return attrs.getMode().getType() == Type.SYMLINK;
     }
 
     @Override

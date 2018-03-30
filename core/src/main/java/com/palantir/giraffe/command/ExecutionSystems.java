@@ -146,7 +146,7 @@ public final class ExecutionSystems {
                     //TODO(jchien): Log
                 }
             }
-        }, MoreExecutors.sameThreadExecutor());
+        }, MoreExecutors.directExecutor());
     }
 
     /**
