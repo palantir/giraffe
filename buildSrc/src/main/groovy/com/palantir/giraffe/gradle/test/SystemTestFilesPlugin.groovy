@@ -35,7 +35,7 @@ class SystemTestFilesPlugin implements Plugin<Project> {
 
         def createFilesTask = project.task("create${c.taskName}TestFiles", type: Exec) {
             ext.outputDir = "${-> project.systemTestFiles.filesDir}/${c.name}"
-            inputs.file createScriptTask
+            inputs.files createScriptTask
             outputs.upToDateWhen { 
                 project.file(outputDir).exists() 
             }

@@ -3,6 +3,7 @@
 //     apply from: javadoc.gradle, to: javadoc
 
 exclude '**/internal/**'
-options.links 'https://docs.oracle.com/javase/7/docs/api/'
+options.links 'https://docs.oracle.com/javase/8/docs/api/'
 options.links "https://google.github.io/guava/releases/${project.libVersions.guava}/api/docs/"
 options.links 'http://www.slf4j.org/apidocs/'
+options.addStringOption('Xdoclint:none', '-quiet')
