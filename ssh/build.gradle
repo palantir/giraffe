@@ -6,7 +6,7 @@ dependencies {
     compile project(':giraffe-core')
 
     compile group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
-    compile(group: 'com.hierynomus', name: 'sshj', version: '0.15.0') {
+    compile(group: 'com.hierynomus', name: 'sshj', version: '0.23.0') {
         // force our version of slf4j-api in a way that persists
         exclude module: 'slf4j-api'
     }
@@ -38,6 +38,14 @@ test {
     include '**/EmbeddedSsh*Suite*'
 }
 
+task linuxIntegrationTest(type: Test) {
+    include '**/Linux*Suite*'
+
+    systemProperty 'giraffe.test.baseDir', '/home/ubuntu/giraffe/ssh/build/system-test-files'
+    systemProperty 'giraffe.test.host', 'ubuntu@localhost'
+    systemProperty 'giraffe.test.hostKey', '/home/ubuntu/.ssh/build_key.rsa'
+}
+
 jacocoCoverage {
-    threshold 0.45, project.name
+    packageThreshold 0.45, 'com/palantir/giraffe'
 }

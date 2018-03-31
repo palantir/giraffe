@@ -35,17 +35,17 @@ highlight_language = 'java'
 # Assume javadoc was already build by Gradle
 javalink_classpath = [
     javalink.find_rt_jar(),
-    '../../core/build/classes/main',
-    '../../ssh/build/classes/main',
-    '../../fs-base/build/classes/main'
+    '../../core/build/classes/java/main',
+    '../../ssh/build/classes/java/main',
+    '../../fs-base/build/classes/java/main'
 ]
 
 javalink_docroots = [
-    'http://docs.oracle.com/javase/7/docs/api/',
+    'http://docs.oracle.com/javase/8/docs/api/',
     {'root': '../build/javadoc', 'base': 'api'}
 ]
 
-javalink_default_version = 7
+javalink_default_version = 8
 javalink_add_package_names = False
 
 # -- Options for HTML output ----------------------------------------------

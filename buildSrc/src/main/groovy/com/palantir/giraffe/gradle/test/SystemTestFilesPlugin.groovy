@@ -5,6 +5,7 @@ import org.gradle.api.Project;
 import org.gradle.api.tasks.Delete;
 import org.gradle.api.tasks.Exec;
 import org.gradle.api.tasks.JavaExec;
+import org.gradle.api.tasks.testing.Test;
 
 class SystemTestFilesPlugin implements Plugin<Project> {
 
@@ -34,7 +35,7 @@ class SystemTestFilesPlugin implements Plugin<Project> {
 
         def createFilesTask = project.task("create${c.taskName}TestFiles", type: Exec) {
             ext.outputDir = "${-> project.systemTestFiles.filesDir}/${c.name}"
-            inputs.file createScriptTask
+            inputs.files createScriptTask
             outputs.upToDateWhen { 
                 project.file(outputDir).exists() 
             }
@@ -45,6 +46,6 @@ class SystemTestFilesPlugin implements Plugin<Project> {
             commandLine createScriptTask.scriptPath, outputDir
         }
 
-        project.tasks['test'].dependsOn createFilesTask
+        project.tasks.withType(Test).all { test -> test.dependsOn createFilesTask }
     }
 }

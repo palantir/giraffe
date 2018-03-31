@@ -147,7 +147,7 @@ public class CommandsTest {
 
     @Test
     public void executeTimeoutExceeded() throws InterruptedException {
-        testTimeout("execute", executeCommandAction(10));
+        testTimeout("execute", executeCommandAction(20));
     }
 
     @Test

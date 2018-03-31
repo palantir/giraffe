@@ -2,6 +2,23 @@
 Changelog
 *********
 
+0.9.0
+=====
+
+Breaking Changes
+----------------
+
+- Giraffe now requires Java 8
+- Update Guava to 24.1-jre
+
+Fixes and Improvements
+----------------------
+
+- Update SSHJ to 0.23.0
+- Update Gradle to 4.6
+- Fix dependency scopes in published POM files
+- Fix documentation builds for Java 8
+
 0.8.1
 =====
 

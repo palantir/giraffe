@@ -64,7 +64,7 @@ class SystemTestPlugin implements Plugin<Project> {
         def creatorCheck = project.task('checkCreatorJarHasNoDependencies', type: JavaExec) {
             ext.outputScript = new File(temporaryDir, 'creator-script.sh')
 
-            inputs.file creatorJar
+            inputs.files creatorJar
             outputs.file outputScript
 
             classpath creatorJar

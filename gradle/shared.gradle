@@ -1,17 +1,15 @@
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
-apply plugin: 'maven'
 apply plugin: 'maven-publish'
-apply plugin: 'jacoco-coverage'
-
+apply plugin: 'com.palantir.jacoco-coverage'
 apply plugin: 'com.github.hierynomus.license'
 
 apply from: rootProject.file('gradle/versions.gradle')
 apply from: rootProject.file('gradle/circle.gradle')
 
-sourceCompatibility = 1.7
-targetCompatibility = 1.7
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
 
 version = rootProject.version
 group = rootProject.group
@@ -93,7 +91,7 @@ publishing {
 
         maven {
             name "bintray"
-            url "https://api.bintray.com/content/palantir/releases"
+            url "https://api.bintray.com/maven/palantir/releases/giraffe/;publish=1"
             credentials {
                 username System.env.BINTRAY_USERNAME
                 password System.env.BINTRAY_PASSWORD
