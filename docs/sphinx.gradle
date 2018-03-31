@@ -50,7 +50,7 @@ task cleanSphinxEnv {
 clean.dependsOn cleanSphinxEnv
 
 task installPackages(type: Exec, dependsOn: sphinxEnv) {
-    inputs.file 'requirements.txt'
+    inputs.files 'requirements.txt'
 
     // TODO(bkeyes): use site-packages dir instead
     outputs.file sphinxBinary
