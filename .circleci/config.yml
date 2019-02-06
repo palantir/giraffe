@@ -6,7 +6,7 @@ common:
     CIRCLE_ARTIFACTS: /home/circleci/artifacts
 
   gradle-wrapper-cache:
-    key: &gradle-wrapper-cache-key v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle.properties" }}
+    key: &gradle-wrapper-cache-key v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle-wrapper.properties" }}
     <<: &save-gradle-wrapper-cache
       save_cache:
         key: *gradle-wrapper-cache-key
@@ -62,3 +62,10 @@ jobs:
           when: always
       - store_test_results: { path: /home/circleci/junit }
       - store_artifacts: { path: /home/circleci/artifacts }
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - build
+      - integration-test
