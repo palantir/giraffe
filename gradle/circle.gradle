@@ -11,6 +11,6 @@ if (System.env.CIRCLE_ARTIFACTS) {
 
 if (System.env.CIRCLE_TEST_REPORTS) {
     tasks.withType(Test).all { test ->
-        test.reports.junitXml.destination = new File(System.env.CIRCLE_TEST_REPORTS, "junit/${project.name}")
+        test.reports.junitXml.destination = new File(System.env.CIRCLE_TEST_REPORTS, "${project.name}")
     }
 }

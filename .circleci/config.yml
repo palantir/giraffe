@@ -1,0 +1,64 @@
+version: 2
+common:
+  environment: &environment
+    GRADLE_OPTS: -Dorg.gradle.console=plain -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
+    CIRCLE_TEST_REPORTS: /home/circleci/junit
+    CIRCLE_ARTIFACTS: /home/circleci/artifacts
+
+  gradle-wrapper-cache:
+    key: &gradle-wrapper-cache-key v1-gradle-wrapper-{{ checksum "gradle/wrapper/gradle.properties" }}
+    <<: &save-gradle-wrapper-cache
+      save_cache:
+        key: *gradle-wrapper-cache-key
+        paths:
+          - ~/.gradle/wrapper
+    <<: &restore-gradle-wrapper-cache
+      restore_cache:
+        keys:
+          - *gradle-wrapper-cache-key
+
+  gradle-cache:
+    key: &gradle-cache-key v1-gradle-cache-{{ checksum "gradle/versions.gradle" }}
+    <<: &save-gradle-cache
+      save_cache:
+        key: *gradle-cache-key
+        paths:
+          - ~/.gradle/caches
+    <<: &restore-gradle-cache
+      restore_cache:
+        keys:
+          - *gradle-cache-key
+
+jobs:
+  build:
+    docker:
+      - image: circleci/openjdk:8u181-jdk
+    environment: *environment
+    steps:
+      - checkout
+      - *restore-gradle-wrapper-cache
+      - *restore-gradle-cache
+      - run: ./gradlew resolveDependencies --parallel --no-daemon --stacktrace --max-workers=8
+      - *save-gradle-wrapper-cache
+      - *save-gradle-cache
+      - run: ./gradlew build --parallel --no-daemon --stacktrace --max-workers=8
+      - run:
+          command: ./gradlew copyCircleArtifacts --no-daemon --stacktrace --max-workers=8
+          when: always
+      - store_test_results: { path: /home/circleci/junit }
+      - store_artifacts: { path: /home/circleci/artifacts }
+
+  integration-test:
+    docker:
+      - image: circleci/openjdk:8u181-jdk
+    environment: *environment
+    steps:
+      - checkout
+      - *restore-gradle-wrapper-cache
+      - *restore-gradle-cache
+      - run: ./gradlew linuxIntegrationTest --parallel --no-daemon --stacktrace --max-workers=8
+      - run:
+          command: ./gradlew copyCircleArtifacts --no-daemon --stacktrace --max-workers=8
+          when: always
+      - store_test_results: { path: /home/circleci/junit }
+      - store_artifacts: { path: /home/circleci/artifacts }
