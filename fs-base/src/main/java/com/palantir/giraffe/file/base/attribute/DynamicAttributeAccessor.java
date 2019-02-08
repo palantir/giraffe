@@ -93,7 +93,7 @@ public final class DynamicAttributeAccessor {
         } catch (IllegalAccessException e) {
             throw new IllegalStateException(methodString(m) + " is not accessible", e);
         } catch (InvocationTargetException e) {
-            Throwables.propagateIfInstanceOf(e.getCause(), IOException.class);
+            Throwables.throwIfInstanceOf(e.getCause(), IOException.class);
             throw new IllegalStateException("error invoking " + methodString(m), e.getCause());
         }
     }
