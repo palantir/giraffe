@@ -189,10 +189,10 @@ final class SshFileSystem extends BaseFileSystem<SshPath> implements HostControl
                 sftp.rm(pathString);
             }
         } catch (SFTPException e) {
-            if (isDirectory && e.getStatusCode() == StatusCode.FAILURE) {
-                // TODO(bkeyes): Can this result from other cases?
+            StatusCode code = e.getStatusCode();
+            if (isDirectory && (code == StatusCode.DIR_NOT_EMPTY || code == StatusCode.FAILURE)) {
                 throw new DirectoryNotEmptyException(path.toString());
-            } else if (e.getStatusCode() == StatusCode.NO_SUCH_FILE) {
+            } else if (code == StatusCode.NO_SUCH_FILE) {
                 throw new NoSuchFileException(pathString);
             } else {
                 throw e;

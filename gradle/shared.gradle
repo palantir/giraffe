@@ -22,12 +22,6 @@ checkstyle {
     configFile rootProject.file('config/checkstyle/checkstyle.xml')
 }
 
-eclipse {
-    classpath {
-        defaultOutputDir = file('ecbuild')
-    }
-}
-
 eclipseJdt {
     inputFile = rootProject.file('config/eclipse/org.eclipse.jdt.core.prefs')
     doLast {

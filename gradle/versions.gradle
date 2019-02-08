@@ -1,10 +1,13 @@
 ext.libVersions = [
-    guava:   '24.1-jre',
-    slf4j:   '1.7.9',
-    jsr305:  '1.3.9',
+    guava:   '27.0.1-jre',
+    slf4j:   '1.7.25',
+    jsr305:  '3.0.2',
     junit:   '4.12',
-    mockito: '1.10.19',
-    hamcrest: '1.3'
+    mockito: '2.24.0',
+    hamcrest: '1.3',
+    logback: '1.2.3',
+    sshj: '0.27.0',
+    sshd: '2.1.0',
 ]
 
 configurations.matching({ it.name in ['compile', 'runtime'] }).all {

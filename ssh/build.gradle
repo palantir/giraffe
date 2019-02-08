@@ -6,7 +6,7 @@ dependencies {
     compile project(':giraffe-core')
 
     compile group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
-    compile(group: 'com.hierynomus', name: 'sshj', version: '0.23.0') {
+    compile(group: 'com.hierynomus', name: 'sshj', version: libVersions.sshj) {
         // force our version of slf4j-api in a way that persists
         exclude module: 'slf4j-api'
     }
@@ -14,11 +14,12 @@ dependencies {
     testCompile project(path: ':giraffe-fs-base', configuration: 'systemTest')
     testCompile project(path: ':giraffe-core', configuration: 'systemTest')
 
-    testCompile(group: 'org.apache.sshd', name: 'sshd-core', version: '0.14.0') {
+    testCompile(group: 'org.apache.sshd', name: 'sshd-core', version: libVersions.sshd) {
         // exclude optional Maven dependencies
         exclude module: 'tomcat-apr'
     }
-    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.2'
+    testCompile(group: 'org.apache.sshd', name: 'sshd-sftp', version: libVersions.sshd)
+    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: libVersions.logback
 }
 
 systemTestFiles {
