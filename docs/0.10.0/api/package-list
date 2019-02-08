@@ -1,0 +1,11 @@
+com.palantir.giraffe
+com.palantir.giraffe.command
+com.palantir.giraffe.command.interactive
+com.palantir.giraffe.command.spi
+com.palantir.giraffe.file
+com.palantir.giraffe.file.base
+com.palantir.giraffe.file.base.attribute
+com.palantir.giraffe.file.base.feature
+com.palantir.giraffe.host
+com.palantir.giraffe.host.spi
+com.palantir.giraffe.ssh
