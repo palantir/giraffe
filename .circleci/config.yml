@@ -29,6 +29,12 @@ common:
         keys:
           - *gradle-cache-key
 
+  collect-artifacts: &collect-artifacts
+    run:
+      name: "Collect Gradle Artifacts"
+      command: ./gradlew copyCircleArtifacts --stacktrace
+      when: always
+
 jobs:
   build:
     docker:
@@ -42,9 +48,7 @@ jobs:
       - *save-gradle-wrapper-cache
       - *save-gradle-cache
       - run: ./gradlew build --stacktrace
-      - run:
-          command: ./gradlew copyCircleArtifacts --stacktrace
-          when: always
+      - *collect-artifacts
       - store_test_results: { path: /home/circleci/junit }
       - store_artifacts: { path: /home/circleci/artifacts }
 
@@ -58,15 +62,13 @@ jobs:
       - *restore-gradle-wrapper-cache
       - *restore-gradle-cache
       - run:
-          name: "Bootstrap SSHD"
-          command: |
-           ./gradlew --stacktrace :giraffe-ssh:generateFileCreatorScript :giraffe-ssh:generateExecCreatorScript
-           ./.circleci/bootstrap-sshd.sh
-
-      - run: ./gradlew linuxIntegrationTest --stacktrace
+          name: "Generate Test Files"
+          command: ./gradlew --stacktrace :giraffe-ssh:generateFileCreatorScript :giraffe-ssh:generateExecCreatorScript
       - run:
-          command: ./gradlew copyCircleArtifacts --stacktrace
-          when: always
+          name: "Bootstrap SSHD"
+          command: ./.circleci/bootstrap-sshd.sh
+      - run: ./gradlew linuxIntegrationTest --stacktrace
+      - *collect-artifacts
       - store_test_results: { path: /home/circleci/junit }
       - store_artifacts: { path: /home/circleci/artifacts }
 

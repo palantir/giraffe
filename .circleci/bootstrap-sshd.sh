@@ -23,6 +23,10 @@ ssh -i ${SSH_KEY_PATH} root@localhost \
      && mkdir -p /home/giraffe/.ssh && cp /root/.ssh/authorized_keys /home/giraffe/.ssh/authorized_keys \
      && chown -R giraffe:giraffe /home/giraffe"
 
+# install GNU coreutils, since Giraffe is not fully POSIX compliant
+# https://github.com/palantir/giraffe/issues/69
+ssh -i ${SSH_KEY_PATH} root@localhost "apk add --update coreutils"
+
 # copy test file creation scripts
 scp -i ${SSH_KEY_PATH} ssh/build/system-test-files/exec-creator.sh ssh/build/system-test-files/file-creator.sh  giraffe@localhost:~
 
