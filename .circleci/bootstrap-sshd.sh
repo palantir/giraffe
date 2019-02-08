@@ -18,8 +18,8 @@ sshpass -p root -- ssh root@localhost "mkdir -p /root/.ssh && tee -a /root/.ssh/
 
 # generate a secondary user for testing with the same SSH key
 ssh -i ${SSH_KEY_PATH} root@localhost \
-    "adduser -D -s /bin/ash giraffe
-     && mkdir -p /home/giraffe/.ssh && cp /root/.ssh/authorized_keys /home/giraffe/.ssh/authorized_keys
+    "adduser -D -s /bin/ash giraffe \
+     && mkdir -p /home/giraffe/.ssh && cp /root/.ssh/authorized_keys /home/giraffe/.ssh/authorized_keys \
      && chown -R giraffe:giraffe /home/giraffe"
 
 # copy test file creation scripts

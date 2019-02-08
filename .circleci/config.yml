@@ -1,7 +1,7 @@
 version: 2
 common:
   environment: &environment
-    GRADLE_OPTS: -Dorg.gradle.console=plain -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false
+    GRADLE_OPTS: -Dorg.gradle.console=plain -Dorg.gradle.internal.launcher.welcomeMessageEnabled=false -Dorg.gradle.workers.max=8 -Dorg.gradle.parallel=true
     CIRCLE_TEST_REPORTS: /home/circleci/junit
     CIRCLE_ARTIFACTS: /home/circleci/artifacts
 
@@ -38,12 +38,12 @@ jobs:
       - checkout
       - *restore-gradle-wrapper-cache
       - *restore-gradle-cache
-      - run: ./gradlew resolveDependencies --parallel --no-daemon --stacktrace --max-workers=8
+      - run: ./gradlew resolveDependencies --stacktrace
       - *save-gradle-wrapper-cache
       - *save-gradle-cache
-      - run: ./gradlew build --parallel --no-daemon --stacktrace --max-workers=8
+      - run: ./gradlew build --stacktrace
       - run:
-          command: ./gradlew copyCircleArtifacts --no-daemon --stacktrace --max-workers=8
+          command: ./gradlew copyCircleArtifacts --stacktrace
           when: always
       - store_test_results: { path: /home/circleci/junit }
       - store_artifacts: { path: /home/circleci/artifacts }
@@ -57,11 +57,15 @@ jobs:
       - checkout
       - *restore-gradle-wrapper-cache
       - *restore-gradle-cache
-      - run: ./gradlew :giraffe-ssh:generateFileCreatorScript :giraffe-ssh:generateExecCreatorScript
-      - run: ./.circleci/bootstrap-sshd.sh
-      - run: ./gradlew linuxIntegrationTest --parallel --no-daemon --stacktrace --max-workers=8
       - run:
-          command: ./gradlew copyCircleArtifacts --no-daemon --stacktrace --max-workers=8
+          name: "Bootstrap SSHD"
+          command: |
+           ./gradlew --stacktrace :giraffe-ssh:generateFileCreatorScript :giraffe-ssh:generateExecCreatorScript
+           ./.circleci/bootstrap-sshd.sh
+
+      - run: ./gradlew linuxIntegrationTest --stacktrace
+      - run:
+          command: ./gradlew copyCircleArtifacts --stacktrace
           when: always
       - store_test_results: { path: /home/circleci/junit }
       - store_artifacts: { path: /home/circleci/artifacts }
