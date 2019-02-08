@@ -24,7 +24,7 @@ ssh -i ${SSH_KEY_PATH} root@localhost \
      && chown -R giraffe:giraffe /home/giraffe"
 
 # copy test file creation scripts
-scp -i ${SSH_KEY_PATH} ssh/build/system-test-files/exec-creator.sh ssh.build/system-test-files/file-creator.sh  giraffe@localhost:~
+scp -i ${SSH_KEY_PATH} ssh/build/system-test-files/exec-creator.sh ssh/build/system-test-files/file-creator.sh  giraffe@localhost:~
 
 # create test files
 ssh -i ${SSH_KEY_PATH} giraffe@localhost "./exec-creator.sh exec && ./file-creator.sh file"
