@@ -2,6 +2,23 @@
 Changelog
 *********
 
+0.10.0
+======
+
+Breaking Changes
+----------------
+
+- Update Guava to 27.0.1-jre
+
+Fixes and Improvements
+----------------------
+
+- Update SSHJ to 0.27.0
+- Update SLF4J to 1.7.25
+- Update test dependencies to latest versions
+- Update Gradle to 5.2.1
+- Use Gradle's ``java-library`` plugin to generate published POM files
+
 0.9.0
 =====
 
