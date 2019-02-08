@@ -12,7 +12,7 @@ repositories {
     ivy {
         name 'pypi'
         url  'https://files.pythonhosted.org/packages/source/v/'
-        layout 'pattern', {
+        patternLayout {
             artifact '[organisation]/[module]-[revision].[ext]'
         }
     }
