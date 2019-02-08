@@ -7,7 +7,8 @@ SSH_KEY_PATH=/home/circleci/.ssh/integration-test
 ssh-keygen -t rsa -b 2048 -N '' -f ${SSH_KEY_PATH}
 
 # install sshpass so we can use a password on the the command line
-apt-get update && apt-get install -y sshpass
+sudo apt-get update
+sudo apt-get install -y sshpass
 
 # install an authorized keys file
 sshpass -p root -- ssh root@localhost "mkdir -p /root/.ssh && tee -a /root/.ssh/authorized_keys" < ${SSH_KEY_PATH}.pub
