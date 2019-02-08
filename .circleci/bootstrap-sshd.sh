@@ -10,6 +10,9 @@ ssh-keygen -t rsa -b 2048 -N '' -f ${SSH_KEY_PATH}
 sudo apt-get update
 sudo apt-get install -y sshpass
 
+# trust the host key for the sshd container
+ssh-keyscan localhost >> /home/circleci/.ssh/known_hosts
+
 # install an authorized keys file
 sshpass -p root -- ssh root@localhost "mkdir -p /root/.ssh && tee -a /root/.ssh/authorized_keys" < ${SSH_KEY_PATH}.pub
 
