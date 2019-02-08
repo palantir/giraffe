@@ -51,11 +51,14 @@ jobs:
   integration-test:
     docker:
       - image: circleci/openjdk:8u181-jdk
+      - image: sickp/alpine-sshd:7.5-r2
     environment: *environment
     steps:
       - checkout
       - *restore-gradle-wrapper-cache
       - *restore-gradle-cache
+      - run: ./gradlew :giraffe-ssh:generateFileCreatorScript :giraffe-ssh:generateExecCreatorScript
+      - run: ./.circleci/bootstrap-sshd.sh
       - run: ./gradlew linuxIntegrationTest --parallel --no-daemon --stacktrace --max-workers=8
       - run:
           command: ./gradlew copyCircleArtifacts --no-daemon --stacktrace --max-workers=8

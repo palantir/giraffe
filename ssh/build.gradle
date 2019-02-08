@@ -41,9 +41,9 @@ test {
 task linuxIntegrationTest(type: Test) {
     include '**/Linux*Suite*'
 
-    systemProperty 'giraffe.test.baseDir', '/home/ubuntu/giraffe/ssh/build/system-test-files'
-    systemProperty 'giraffe.test.host', 'ubuntu@localhost'
-    systemProperty 'giraffe.test.hostKey', '/home/ubuntu/.ssh/build_key.rsa'
+    systemProperty 'giraffe.test.baseDir', '/home/giraffe'
+    systemProperty 'giraffe.test.host', 'giraffe@localhost'
+    systemProperty 'giraffe.test.hostKey', '/home/circleci/.ssh/integration-test'
 }
 
 jacocoCoverage {
