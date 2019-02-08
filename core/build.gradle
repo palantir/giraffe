@@ -12,7 +12,7 @@ dependencies {
 
     testCompile project(':giraffe-test-util')
     testCompile group: 'org.mockito', name: 'mockito-core', version: libVersions.mockito
-    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: '1.1.2'
+    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: libVersions.logback
 }
 
 // configure the systemTest sourceset and configurations

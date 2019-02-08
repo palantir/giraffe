@@ -17,27 +17,22 @@ package com.palantir.giraffe.ssh.util;
 
 import java.io.IOException;
 import java.net.ServerSocket;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
-import org.apache.sshd.SshServer;
 import org.apache.sshd.common.NamedFactory;
-import org.apache.sshd.common.Session;
-import org.apache.sshd.common.file.FileSystemFactory;
-import org.apache.sshd.common.file.FileSystemView;
-import org.apache.sshd.common.file.nativefs.NativeFileSystemView;
-import org.apache.sshd.server.Command;
-import org.apache.sshd.server.CommandFactory;
-import org.apache.sshd.server.PasswordAuthenticator;
-import org.apache.sshd.server.UserAuth;
-import org.apache.sshd.server.auth.UserAuthPassword;
+import org.apache.sshd.common.file.nativefs.NativeFileSystemFactory;
+import org.apache.sshd.server.SshServer;
+import org.apache.sshd.server.auth.UserAuth;
+import org.apache.sshd.server.auth.password.PasswordAuthenticator;
+import org.apache.sshd.server.auth.password.UserAuthPasswordFactory;
+import org.apache.sshd.server.command.Command;
+import org.apache.sshd.server.command.CommandFactory;
 import org.apache.sshd.server.keyprovider.SimpleGeneratorHostKeyProvider;
 import org.apache.sshd.server.session.ServerSession;
-import org.apache.sshd.server.sftp.SftpSubsystem;
 import org.apache.sshd.server.shell.ProcessShellFactory;
+import org.apache.sshd.server.subsystem.sftp.SftpSubsystemFactory;
 
 import com.palantir.giraffe.host.Host;
 import com.palantir.giraffe.ssh.PasswordSshCredential;
@@ -93,26 +88,15 @@ public class MinaTestServer {
             }
         });
         List<NamedFactory<UserAuth>> authMethods = new ArrayList<>();
-        authMethods.add(new UserAuthPassword.Factory());
+        authMethods.add(new UserAuthPasswordFactory());
         sshd.setUserAuthFactories(authMethods);
 
-        sshd.setFileSystemFactory(new FileSystemFactory() {
-            @Override
-            public FileSystemView createFileSystemView(Session session) throws IOException {
-                if (Files.notExists(workingDir)) {
-                    Files.createDirectory(workingDir);
-                }
-
-                // TODO(bkeyes): this is "private", are there other options?
-                return new NativeFileSystemView(
-                        session.getUsername(),
-                        Collections.singletonMap("/", "/"),
-                        workingDir.toString());
-            }
-        });
+        NativeFileSystemFactory fsFactory = new NativeFileSystemFactory(true);
+        fsFactory.setUsersHomeDir(workingDir.toString());
+        sshd.setFileSystemFactory(fsFactory);
 
         List<NamedFactory<Command>> subsystems = new ArrayList<>();
-        subsystems.add(new SftpSubsystem.Factory());
+        subsystems.add(new SftpSubsystemFactory());
         sshd.setSubsystemFactories(subsystems);
 
         sshd.start();
@@ -121,9 +105,8 @@ public class MinaTestServer {
     public void stop() {
         try {
             sshd.stop();
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw new IllegalStateException("interrupted while stopping sshd", e);
+        } catch (IOException e) {
+            throw new IllegalStateException("error while stopping sshd", e);
         }
     }
 
