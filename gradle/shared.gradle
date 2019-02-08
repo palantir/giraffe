@@ -5,6 +5,7 @@ apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
 apply plugin: 'com.palantir.jacoco-coverage'
 apply plugin: 'com.github.hierynomus.license'
+apply plugin: 'com.jfrog.bintray'
 
 apply from: rootProject.file('gradle/versions.gradle')
 apply from: rootProject.file('gradle/circle.gradle')
@@ -83,16 +84,26 @@ publishing {
             name "local"
             url localPublishDir
         }
-
-        maven {
-            name "bintray"
-            url "https://api.bintray.com/maven/palantir/releases/giraffe/;publish=1"
-            credentials {
-                username System.env.BINTRAY_USERNAME
-                password System.env.BINTRAY_PASSWORD
-            }
-        }
     }
+}
+
+bintray {
+  user = System.env.BINTRAY_USERNAME
+  key = System.env.BINTRAY_PASSWORD
+  publish = true
+  pkg {
+    repo = 'releases'
+    name = 'giraffe'
+    userOrg = 'palantir'
+    licenses = ['Apache-2.0']
+    vcsUrl = 'https://github.com/palantir/giraffe.git'
+    publications = ['java']
+  }
+}
+
+publish.dependsOn bintrayUpload
+bintrayUpload.onlyIf {
+    versionDetails().isCleanTag && System.env.BINTRAY_USERNAME && System.env.BINTRAY_PASSWORD
 }
 
 task resolveDependencies {
