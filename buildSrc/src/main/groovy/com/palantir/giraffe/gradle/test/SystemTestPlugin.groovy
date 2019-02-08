@@ -16,17 +16,17 @@ class SystemTestPlugin implements Plugin<Project> {
         // add system test source set and configurations
         project.sourceSets.create(NAME)
         project.configurations.create(NAME) {
-            extendsFrom project.configurations[NAME + 'Compile']
+            extendsFrom project.configurations[NAME + 'Implementation']
         }
         project.configurations.create(CREATOR_NAME)
 
         // TODO(bkeyes): don't assume Eclipse exists
         project.eclipse.classpath {
-            plusConfigurations += [project.configurations[NAME + 'Compile']]
+            plusConfigurations += [project.configurations[NAME + 'Implementation']]
         }
 
         def deps = project.dependencies;
-        deps.add(NAME + 'Compile', deps.project(path: ':giraffe-test-util'))
+        deps.add(NAME + 'Implementation', deps.project(path: ':giraffe-test-util'))
 
         // define the main test jar task
         def testJar = project.task(NAME + 'Jar', type: Jar) {
