@@ -1,6 +1,5 @@
 apply from: '../gradle/shared.gradle'
 
 dependencies {
-    compile group: 'junit', name: 'junit', version: libVersions.junit
-    compile group: 'org.hamcrest', name: 'hamcrest-library', version: libVersions.hamcrest
+    api group: 'junit', name: 'junit', version: libVersions.junit
 }

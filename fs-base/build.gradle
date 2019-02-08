@@ -3,10 +3,11 @@ apply from: '../gradle/shared.gradle'
 apply plugin: 'giraffe.system-test'
 
 dependencies {
-    compile group: 'com.google.guava', name: 'guava', version: libVersions.guava
-    compile group: 'com.google.code.findbugs', name: 'jsr305', version: libVersions.jsr305
+    api group: 'com.google.guava', name: 'guava', version: libVersions.guava
+    api group: 'com.google.code.findbugs', name: 'jsr305', version: libVersions.jsr305
 
-    testCompile group: 'org.mockito', name: 'mockito-core', version: libVersions.mockito
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: libVersions.mockito
+    systemTestImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: libVersions.hamcrest
 }
 
 systemTest {

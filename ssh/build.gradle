@@ -3,23 +3,23 @@ apply from: '../gradle/shared.gradle'
 apply plugin: 'giraffe.system-test-files'
 
 dependencies {
-    compile project(':giraffe-core')
+    api project(':giraffe-core')
+    api group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
 
-    compile group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
-    compile(group: 'com.hierynomus', name: 'sshj', version: libVersions.sshj) {
+    implementation(group: 'com.hierynomus', name: 'sshj', version: libVersions.sshj) {
         // force our version of slf4j-api in a way that persists
         exclude module: 'slf4j-api'
     }
 
-    testCompile project(path: ':giraffe-fs-base', configuration: 'systemTest')
-    testCompile project(path: ':giraffe-core', configuration: 'systemTest')
-
-    testCompile(group: 'org.apache.sshd', name: 'sshd-core', version: libVersions.sshd) {
+    testImplementation project(path: ':giraffe-fs-base', configuration: 'systemTest')
+    testImplementation project(path: ':giraffe-core', configuration: 'systemTest')
+    testImplementation(group: 'org.apache.sshd', name: 'sshd-core', version: libVersions.sshd) {
         // exclude optional Maven dependencies
         exclude module: 'tomcat-apr'
     }
-    testCompile(group: 'org.apache.sshd', name: 'sshd-sftp', version: libVersions.sshd)
-    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: libVersions.logback
+    testImplementation(group: 'org.apache.sshd', name: 'sshd-sftp', version: libVersions.sshd)
+
+    testRuntimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: libVersions.logback
 }
 
 systemTestFiles {

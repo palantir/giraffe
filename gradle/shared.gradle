@@ -1,4 +1,5 @@
 apply plugin: 'java'
+apply plugin: 'java-library'
 apply plugin: 'eclipse'
 apply plugin: 'checkstyle'
 apply plugin: 'maven-publish'
@@ -46,8 +47,8 @@ tasks.withType(Test).all { test ->
 dependencies {
     checkstyle 'com.puppycrawl.tools:checkstyle:6.6'
 
-    testCompile group: 'junit', name: 'junit', version: libVersions.junit
-    testCompile group: 'org.hamcrest', name: 'hamcrest-library', version: libVersions.hamcrest
+    testImplementation group: 'junit', name: 'junit', version: libVersions.junit
+    testImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: libVersions.hamcrest
 }
 
 apply from: rootProject.file('gradle/javadoc.gradle'), to: javadoc

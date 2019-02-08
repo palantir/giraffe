@@ -4,15 +4,16 @@ apply plugin: 'giraffe.system-test'
 apply plugin: 'giraffe.system-test-files'
 
 dependencies {
-    compile project(':giraffe-fs-base')
+    api project(':giraffe-fs-base')
+    api group: 'com.google.guava', name: 'guava', version: libVersions.guava
+    api group: 'com.google.code.findbugs', name: 'jsr305', version: libVersions.jsr305
+    api group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
 
-    compile group: 'com.google.guava', name: 'guava', version: libVersions.guava
-    compile group: 'com.google.code.findbugs', name: 'jsr305', version: libVersions.jsr305
-    compile group: 'org.slf4j', name: 'slf4j-api', version: libVersions.slf4j
+    testImplementation project(':giraffe-test-util')
+    testImplementation group: 'org.mockito', name: 'mockito-core', version: libVersions.mockito
+    systemTestImplementation group: 'org.hamcrest', name: 'hamcrest-library', version: libVersions.hamcrest
 
-    testCompile project(':giraffe-test-util')
-    testCompile group: 'org.mockito', name: 'mockito-core', version: libVersions.mockito
-    testRuntime group: 'ch.qos.logback', name: 'logback-classic', version: libVersions.logback
+    testRuntimeOnly group: 'ch.qos.logback', name: 'logback-classic', version: libVersions.logback
 }
 
 // configure the systemTest sourceset and configurations
@@ -29,7 +30,7 @@ creatorJar {
 // systemTest requires main code (for ES definitions)
 sourceSets.systemTest.compileClasspath += sourceSets.main.output
 configurations {
-    systemTestCompile.extendsFrom compile
+    systemTestImplementation.extendsFrom implementation
 }
 artifacts {
     systemTest jar
