@@ -165,7 +165,7 @@ public final class MoreFiles {
                 throws IOException {
             // visitFile may fail because delete fails or attributes are not
             // available. Try deleting again for the second case.
-            Throwables.propagateIfInstanceOf(exc, NoSuchFileException.class);
+            Throwables.throwIfInstanceOf(exc, NoSuchFileException.class);
             try {
                 Files.delete(file);
             } catch (IOException ignored) {
