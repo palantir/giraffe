@@ -6,7 +6,7 @@ build/
 .project
 .classpath
 .settings/
-ecbuild/
+bin/
 
 # Sphinx/Python files
 *.pyc
