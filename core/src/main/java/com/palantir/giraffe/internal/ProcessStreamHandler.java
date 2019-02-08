@@ -26,6 +26,7 @@ import com.google.common.base.Optional;
 import com.google.common.util.concurrent.FutureCallback;
 import com.google.common.util.concurrent.Futures;
 import com.google.common.util.concurrent.ListenableFutureTask;
+import com.google.common.util.concurrent.MoreExecutors;
 import com.google.common.util.concurrent.Uninterruptibles;
 import com.palantir.giraffe.command.CommandContext;
 import com.palantir.giraffe.command.CommandResult;
@@ -131,7 +132,7 @@ final class ProcessStreamHandler {
                     listener.onException(t);
                 }
             }
-        });
+        }, MoreExecutors.directExecutor());
         executor.execute(task);
     }
 }
