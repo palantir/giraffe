@@ -22,7 +22,7 @@ class SystemTestPlugin implements Plugin<Project> {
 
         // TODO(bkeyes): don't assume Eclipse exists
         project.eclipse.classpath {
-            plusConfigurations += [project.configurations[NAME + 'Implementation']]
+            plusConfigurations += [project.configurations[NAME]]
         }
 
         def deps = project.dependencies;
