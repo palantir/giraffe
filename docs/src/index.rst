@@ -20,8 +20,8 @@ Gradle_ for builds:
     }
 
     dependencies {
-        compile 'com.palantir.giraffe:giraffe-ssh:0.9.0'
-        // or 'com.palantir.giraffe:giraffe-core:0.9.0' for local features only
+        compile 'com.palantir.giraffe:giraffe-ssh:0.10.0'
+        // or 'com.palantir.giraffe:giraffe-core:0.10.0' for local features only
     }
 
 .. _Gradle: https://gradle.org/
