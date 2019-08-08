@@ -36,7 +36,7 @@ task installVirtualenv(type: Copy) {
 
 task sphinxEnv(type: Exec, dependsOn: installVirtualenv) {
     outputs.dir sphinxEnvDir
-    commandLine 'python', "${installVirtualenv.virtualenvDir}/virtualenv.py", sphinxEnvDir
+    commandLine 'python2', "${installVirtualenv.virtualenvDir}/virtualenv.py", sphinxEnvDir
 }
 
 task cleanSphinxEnv {
