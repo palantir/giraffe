@@ -8,8 +8,8 @@ vendor/
 # ignore files from develop/master
 .gradle/
 
-buildSrc/
-core/
-ssh/
-fs-base/
-test-util/
+/buildSrc/
+/core/
+/ssh/
+/fs-base/
+/test-util/
