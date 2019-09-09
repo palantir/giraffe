@@ -1,3 +1,19 @@
+buildscript {
+    repositories {
+        maven { url 'https://artifactory.palantir.build/artifactory/release-jar' }
+    }
+    dependencies {
+        classpath 'com.netflix.nebula:gradle-info-plugin:5.0.3'
+    }
+}
+buildscript {
+    repositories {
+        maven { url 'https://artifactory.palantir.build/artifactory/release-jar' }
+    }
+    dependencies {
+        classpath 'com.netflix.nebula:nebula-publishing-plugin:13.3.0'
+    }
+}
 plugins {
     id "com.palantir.git-version" version "0.12.2"
     id "com.palantir.jacoco-coverage" version "0.4.0" apply false
