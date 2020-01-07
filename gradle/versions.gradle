@@ -1,6 +1,6 @@
 ext.libVersions = [
     guava:   '27.0.1-jre',
-    slf4j:   '1.7.25',
+    slf4j:   '1.7.26',
     jsr305:  '3.0.2',
     junit:   '4.12',
     mockito: '2.24.0',
