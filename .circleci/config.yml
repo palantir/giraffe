@@ -80,19 +80,7 @@ jobs:
       - checkout
       - *restore-gradle-wrapper-cache
       - *restore-gradle-cache
-      - run:
-          name: "Install github-release"
-          command: |
-            wget -O /tmp/github-release.tar.bz2 https://github.com/aktau/github-release/releases/download/v0.7.1/linux-amd64-github-release.tar.bz2
-            sudo tar -C /usr/local/bin --strip-components 3 -xf /tmp/github-release.tar.bz2
       - run: ./gradlew publish --stacktrace
-      - run: |
-          github-release upload \
-            --user ${CIRCLE_PROJECT_USERNAME} \
-            --repo ${CIRCLE_PROJECT_REPONAME} \
-            --tag ${CIRCLE_TAG} \
-            --name "giraffe-release-${CIRCLE_TAG}.zip" \
-            --file build/distributions/*.zip
 
 workflows:
   version: 2
