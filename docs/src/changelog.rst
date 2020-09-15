@@ -2,6 +2,16 @@
 Changelog
 *********
 
+0.10.1
+======
+
+Fixes and Improvements
+----------------------
+
+- Add support for SSH keepalive messages to detect stuck connections
+- Update SLF4J to 1.7.26
+- Update Gradle to 5.6.4
+
 0.10.0
 ======
 

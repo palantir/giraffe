@@ -6,7 +6,7 @@ Gracefully Integrated Remote Access For Files and Execution
 > A long neck to reach far-away places
 
 - [Home](http://palantir.github.io/giraffe/)
-- [Documentation](http://palantir.github.io/giraffe/docs/0.10.0/)
+- [Documentation](http://palantir.github.io/giraffe/docs/0.10.1/)
 
 ## Overview
 
@@ -39,8 +39,8 @@ repositories {
 }
 
 dependencies {
-    compile 'com.palantir.giraffe:giraffe-ssh:0.10.0'
-    // or 'com.palantir.giraffe:giraffe-core:0.10.0' for local features only
+    compile 'com.palantir.giraffe:giraffe-ssh:0.10.1'
+    // or 'com.palantir.giraffe:giraffe-core:0.10.1' for local features only
 }
 ```
 
