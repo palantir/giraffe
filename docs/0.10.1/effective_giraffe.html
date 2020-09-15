@@ -1,0 +1,402 @@
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Effective Giraffe &#8212; Giraffe 0.10.1 documentation</title>
+    <link rel="stylesheet" href="static/alabaster.css" type="text/css" />
+    <link rel="stylesheet" href="static/pygments.css" type="text/css" />
+    <link rel="stylesheet" type="text/css" href="_static/giraffe.css" />
+    <script type="text/javascript" id="documentation_options" data-url_root="./" src="static/documentation_options.js"></script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="_static/language_data.js"></script>
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Documentation" href="api/index.html" />
+    <link rel="prev" title="Giraffe Basics" href="guide.html" />
+   
+  <link rel="stylesheet" href="static/custom.css" type="text/css" />
+  
+  
+  <meta name="viewport" content="width=device-width, initial-scale=0.9, maximum-scale=0.9" />
+
+  </head><body>
+  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          
+
+          <div class="body" role="main">
+            
+  <div class="section" id="effective-giraffe">
+<h1>Effective Giraffe<a class="headerlink" href="#effective-giraffe" title="Permalink to this headline">¶</a></h1>
+<p>While we hope the Giraffe API is easy to understand and use, there are certain
+best practices and pitfalls that are worth discussing explicitly. This guide
+outlines patterns to avoid, highlights potentially surprising behavior, and
+gives examples of “giraffesque” code. It also discusses the rational for API
+choices when appropriate or enlightening.</p>
+<div class="contents local topic" id="contents">
+<ul class="simple">
+<li><a class="reference internal" href="#connection-management" id="id1">Connection Management</a><ul>
+<li><a class="reference internal" href="#always-close-opened-connections" id="id2">Always close opened connections</a></li>
+<li><a class="reference internal" href="#avoid-leaking-system-references" id="id3">Avoid leaking system references</a></li>
+<li><a class="reference internal" href="#maximize-connection-lifetime" id="id4">Maximize connection lifetime</a></li>
+<li><a class="reference internal" href="#use-hostcontrolsystem-when-mixing-local-and-remote-hosts" id="id5">Use <code class="docutils literal notranslate"><span class="pre">HostControlSystem</span></code> when mixing local and remote hosts</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#exception-handling" id="id6">Exception Handling</a></li>
+<li><a class="reference internal" href="#file-operations" id="id7">File Operations</a><ul>
+<li><a class="reference internal" href="#only-use-paths-get-for-local-paths" id="id8">Only use <code class="docutils literal notranslate"><span class="pre">Paths.get</span></code> for local paths</a></li>
+<li><a class="reference internal" href="#use-uniformpath-when-no-file-system-is-available" id="id9">Use <code class="docutils literal notranslate"><span class="pre">UniformPath</span></code> when no file system is available</a></li>
+<li><a class="reference internal" href="#use-morefiles-copylarge-for-large-files" id="id10">Use <code class="docutils literal notranslate"><span class="pre">MoreFiles.copyLarge</span></code> for large files</a></li>
+<li><a class="reference internal" href="#know-and-use-library-methods" id="id11">Know and use library methods</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#command-execution" id="id12">Command Execution</a><ul>
+<li><a class="reference internal" href="#don-t-escape-arguments" id="id13">Don’t escape arguments</a></li>
+<li><a class="reference internal" href="#execute-shell-commands-in-a-shell" id="id14">Execute shell commands in a shell</a></li>
+<li><a class="reference internal" href="#never-catch-commandexception" id="id15">Never catch <code class="docutils literal notranslate"><span class="pre">CommandException</span></code></a></li>
+<li><a class="reference internal" href="#prefer-absolute-paths-to-modifying-path" id="id16">Prefer absolute paths to modifying <code class="docutils literal notranslate"><span class="pre">PATH</span></code></a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="connection-management">
+<h2><a class="toc-backref" href="#id1">Connection Management</a><a class="headerlink" href="#connection-management" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="always-close-opened-connections">
+<h3><a class="toc-backref" href="#id2">Always close opened connections</a><a class="headerlink" href="#always-close-opened-connections" title="Permalink to this headline">¶</a></h3>
+<p>Giraffe leaves connection management to clients: connections are never
+automatically opened and are only automatically closed under certain error
+conditions. This is the simplest way to guarantee compatibility with a wide
+range of applications, but means that clients are responsible for closing all
+connections that they open. Use the <em>try-with-resources</em> statement to simplify
+this:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">SshHostAccessor</span> <span class="n">host</span> <span class="o">=</span> <span class="n">getHost</span><span class="p">();</span>
+<span class="k">try</span> <span class="p">(</span><span class="n">HostControlSystem</span> <span class="n">hcs</span> <span class="o">=</span> <span class="n">host</span><span class="p">.</span><span class="na">open</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">Files</span><span class="p">.</span><span class="na">copy</span><span class="p">(</span><span class="n">hcs</span><span class="p">.</span><span class="na">getPath</span><span class="p">(</span><span class="s">&quot;transformers.mp4&quot;</span><span class="p">),</span> <span class="n">hcs</span><span class="p">.</span><span class="na">getPath</span><span class="p">(</span><span class="s">&quot;transformers2.mp4&quot;</span><span class="p">));</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>If <em>try-with-resources</em> is impractical, call <code class="docutils literal notranslate"><span class="pre">close</span></code> explicitly.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">If a program does not terminate when expected, be sure that all systems are
+closed correctly. Many systems start non-daemon threads that are only
+stopped when the system closes.</p>
+</div>
+</div>
+<div class="section" id="avoid-leaking-system-references">
+<h3><a class="toc-backref" href="#id3">Avoid leaking system references</a><a class="headerlink" href="#avoid-leaking-system-references" title="Permalink to this headline">¶</a></h3>
+<p>Both <a class="reference external" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Path.html"><code class="docutils literal notranslate"><span class="pre">Path</span></code></a> and <a class="reference external" href="api/com/palantir/giraffe/command/Command.html"><code class="docutils literal notranslate"><span class="pre">Command</span></code></a> are “live” objects, meaning they
+are associated with active file systems and active execution systems
+respectively. A <code class="docutils literal notranslate"><span class="pre">Path</span></code> associated with a closed file system is only useful
+for inspection — passing it to any method in <a class="reference external" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html"><code class="docutils literal notranslate"><span class="pre">Files</span></code></a> will throw an
+exception.</p>
+<p>Avoid leaking references to these objects outside the scope of the
+<em>try-with-resources</em> statement that opens and closes the associated system.</p>
+<p>Consider <a class="reference internal" href="#uniform-path"><span class="std std-ref">using UniformPath</span></a> to avoid this problem when
+passing path information.</p>
+</div>
+<div class="section" id="maximize-connection-lifetime">
+<h3><a class="toc-backref" href="#id4">Maximize connection lifetime</a><a class="headerlink" href="#maximize-connection-lifetime" title="Permalink to this headline">¶</a></h3>
+<p>Opening remote connections is expensive, so they should be created as
+infrequently as possible and left open for as long as is practical. Open
+connections at the highest reasonable level in an application and pass open
+systems (or objects that reference open systems) into subroutines rather than
+creating new connections in each subroutine.</p>
+</div>
+<div class="section" id="use-hostcontrolsystem-when-mixing-local-and-remote-hosts">
+<h3><a class="toc-backref" href="#id5">Use <code class="docutils literal notranslate"><span class="pre">HostControlSystem</span></code> when mixing local and remote hosts</a><a class="headerlink" href="#use-hostcontrolsystem-when-mixing-local-and-remote-hosts" title="Permalink to this headline">¶</a></h3>
+<p>The first two guidelines do not apply to the local file system or local
+execution system. These systems are always open and their <code class="docutils literal notranslate"><span class="pre">close</span></code> methods
+always throw exceptions. Because remote systems must always be closed, code
+that deals with both local and remote hosts must handle this distinction to
+avoid generating errors at runtime. Use <a class="reference external" href="api/com/palantir/giraffe/host/HostControlSystem.html"><code class="docutils literal notranslate"><span class="pre">HostControlSystem</span></code></a> instead of
+individual file and execution systems to abstract this difference:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="c1">// custom host representation for both local and remote hosts</span>
+<span class="kd">interface</span> <span class="nc">MyHost</span> <span class="p">{</span>
+    <span class="kt">boolean</span> <span class="nf">isLocal</span><span class="p">();</span>
+    <span class="n">SshHostAccessor</span> <span class="nf">getSshAccessor</span><span class="p">();</span>
+<span class="p">}</span>
+
+<span class="kd">public</span> <span class="n">HostControlSystem</span> <span class="nf">openSystem</span><span class="p">(</span><span class="n">MyHost</span> <span class="n">host</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="p">{</span>
+    <span class="k">if</span> <span class="p">(</span><span class="n">host</span><span class="p">.</span><span class="na">isLocal</span><span class="p">())</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">HostAccessors</span><span class="p">.</span><span class="na">getDefault</span><span class="p">().</span><span class="na">open</span><span class="p">();</span>
+    <span class="p">}</span> <span class="k">else</span> <span class="p">{</span>
+        <span class="k">return</span> <span class="n">host</span><span class="p">.</span><span class="na">getSshAccessor</span><span class="p">().</span><span class="na">open</span><span class="p">();</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+
+<span class="n">MyHost</span> <span class="n">host</span> <span class="o">=</span> <span class="n">getHost</span><span class="p">();</span>
+<span class="k">try</span> <span class="p">(</span><span class="n">HostControlSystem</span> <span class="n">hcs</span> <span class="o">=</span> <span class="n">openSystem</span><span class="p">(</span><span class="n">host</span><span class="p">))</span> <span class="p">{</span>
+    <span class="n">Path</span> <span class="n">path</span> <span class="o">=</span> <span class="n">hcs</span><span class="p">.</span><span class="na">getPath</span><span class="p">(</span><span class="s">&quot;potato.txt&quot;</span><span class="p">)</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>The local (default) <code class="docutils literal notranslate"><span class="pre">HostControlSystem</span></code> implements a no-op <code class="docutils literal notranslate"><span class="pre">close</span></code> method
+that is safe to call.</p>
+</div>
+</div>
+<div class="section" id="exception-handling">
+<h2><a class="toc-backref" href="#id6">Exception Handling</a><a class="headerlink" href="#exception-handling" title="Permalink to this headline">¶</a></h2>
+<p>Most methods on Giraffe classes throw <code class="docutils literal notranslate"><span class="pre">IOException</span></code> or more specific
+subclasses. By their nature, file system operations and command execution rely
+on external resources and can fail for reasons outside the control of the
+executing code. While dealing with these exceptions may seem annoying, hiding
+them would create a broken API that does not reflect reality.</p>
+<p>Unless there is an appropriate response to a local failure, propagate
+exceptions up to the level at which the system was created, where they can be
+handled in a uniform way as part of the existing <em>try-with-resources</em>
+statement:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="kd">public</span> <span class="kt">void</span> <span class="nf">copyThings</span><span class="p">(</span><span class="n">Path</span> <span class="n">target</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="p">{</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">copyStuff</span><span class="p">(</span><span class="n">Path</span> <span class="n">target</span><span class="p">)</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="p">{</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+
+<span class="kd">public</span> <span class="kt">void</span> <span class="nf">startServer</span><span class="p">()</span> <span class="kd">throws</span> <span class="n">IOException</span> <span class="p">{</span>
+    <span class="c1">// ...</span>
+<span class="p">}</span>
+
+<span class="k">try</span> <span class="p">(</span><span class="n">HostControlSystem</span> <span class="n">hcs</span> <span class="o">=</span> <span class="n">host</span><span class="p">.</span><span class="na">open</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">copyThings</span><span class="p">(</span><span class="n">hcs</span><span class="p">.</span><span class="na">getPath</span><span class="p">(</span><span class="s">&quot;things&quot;</span><span class="p">));</span>
+    <span class="n">copyStuff</span><span class="p">(</span><span class="n">hcs</span><span class="p">.</span><span class="na">getPath</span><span class="p">(</span><span class="s">&quot;stuff&quot;</span><span class="p">));</span>
+    <span class="n">startServer</span><span class="p">();</span>
+<span class="p">}</span> <span class="k">catch</span> <span class="p">(</span><span class="n">IOException</span> <span class="n">e</span><span class="p">)</span> <span class="p">{</span>
+    <span class="n">log</span><span class="p">.</span><span class="na">error</span><span class="p">(</span><span class="s">&quot;Failed to setup and start server&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">);</span>
+    <span class="k">throw</span> <span class="k">new</span> <span class="n">IllegalStateException</span><span class="p">(</span><span class="n">e</span><span class="p">);</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<div class="admonition tip">
+<p class="first admonition-title">Tip</p>
+<p class="last">When using Giraffe for testing, allow test methods to throw <code class="docutils literal notranslate"><span class="pre">IOException</span></code>.
+This removes unnecessary <em>try-catch</em> statements and generally has the same
+result: the test fails if any operation throws an exception.</p>
+</div>
+</div>
+<div class="section" id="file-operations">
+<h2><a class="toc-backref" href="#id7">File Operations</a><a class="headerlink" href="#file-operations" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="only-use-paths-get-for-local-paths">
+<h3><a class="toc-backref" href="#id8">Only use <code class="docutils literal notranslate"><span class="pre">Paths.get</span></code> for local paths</a><a class="headerlink" href="#only-use-paths-get-for-local-paths" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Paths.html#get-java.lang.String-java.lang.String...-"><code class="docutils literal notranslate"><span class="pre">Paths.get</span></code></a> is a convenient way to
+create <em>local</em> paths. These paths are <em>not</em> compatible with other file systems.
+In particular, avoid these patterns:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">Path</span> <span class="n">local</span> <span class="o">=</span> <span class="n">Paths</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&quot;docs/cheetah/running.txt&quot;</span><span class="p">);</span>
+<span class="k">try</span> <span class="p">(</span><span class="n">HostControlSystem</span> <span class="n">hcs</span> <span class="o">=</span> <span class="n">remoteHost</span><span class="p">.</span><span class="na">open</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">Path</span> <span class="n">remote</span> <span class="o">=</span> <span class="n">hcs</span><span class="p">.</span><span class="na">getPath</span><span class="p">(</span><span class="s">&quot;animals&quot;</span><span class="p">);</span>
+
+    <span class="c1">// BAD - throws exception</span>
+    <span class="n">Path</span> <span class="n">target</span> <span class="o">=</span> <span class="n">remote</span><span class="p">.</span><span class="na">resolve</span><span class="p">(</span><span class="n">local</span><span class="p">);</span>
+
+    <span class="c1">// BAD - only works if path syntax (separator, etc.) is the same</span>
+    <span class="n">Path</span> <span class="n">otherTarget</span> <span class="o">=</span> <span class="n">remote</span><span class="p">.</span><span class="na">resolve</span><span class="p">(</span><span class="n">local</span><span class="p">.</span><span class="na">toString</span><span class="p">());</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+<p>Safely resolving a local path with a remote path requires more effort:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">Path</span> <span class="n">local</span> <span class="o">=</span> <span class="n">Paths</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&quot;docs/cheetah/running.txt&quot;</span><span class="p">);</span>
+<span class="k">try</span> <span class="p">(</span><span class="n">HostControlSystem</span> <span class="n">hcs</span> <span class="o">=</span> <span class="n">remoteHost</span><span class="p">.</span><span class="na">open</span><span class="p">())</span> <span class="p">{</span>
+    <span class="n">Path</span> <span class="n">remote</span> <span class="o">=</span> <span class="n">hcs</span><span class="p">.</span><span class="na">getPath</span><span class="p">(</span><span class="s">&quot;animals&quot;</span><span class="p">);</span>
+
+    <span class="n">Path</span> <span class="n">target</span> <span class="o">=</span> <span class="n">remote</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="n">Path</span> <span class="n">segment</span> <span class="p">:</span> <span class="n">local</span><span class="p">)</span> <span class="p">{</span>
+        <span class="n">target</span> <span class="o">=</span> <span class="n">target</span><span class="p">.</span><span class="na">resolve</span><span class="p">(</span><span class="n">segment</span><span class="p">.</span><span class="na">getFileName</span><span class="p">().</span><span class="na">toString</span><span class="p">());</span>
+    <span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="use-uniformpath-when-no-file-system-is-available">
+<span id="uniform-path"></span><h3><a class="toc-backref" href="#id9">Use <code class="docutils literal notranslate"><span class="pre">UniformPath</span></code> when no file system is available</a><a class="headerlink" href="#use-uniformpath-when-no-file-system-is-available" title="Permalink to this headline">¶</a></h3>
+<p><a class="reference external" href="api/com/palantir/giraffe/file/UniformPath.html"><code class="docutils literal notranslate"><span class="pre">UniformPath</span></code></a> is a <code class="docutils literal notranslate"><span class="pre">Path</span></code>-like object that is <em>not</em> associated with
+any file system. It defines a consistent syntax for path strings and can be
+converted to and from real paths. Consider using <code class="docutils literal notranslate"><span class="pre">UniformPath</span></code> when opening a
+real file system is impractical or when paths from multiple file systems are
+combined.</p>
+</div>
+<div class="section" id="use-morefiles-copylarge-for-large-files">
+<h3><a class="toc-backref" href="#id10">Use <code class="docutils literal notranslate"><span class="pre">MoreFiles.copyLarge</span></code> for large files</a><a class="headerlink" href="#use-morefiles-copylarge-for-large-files" title="Permalink to this headline">¶</a></h3>
+<p>When copying files between different systems, <a class="reference external" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html#copy-java.nio.file.Path-java.nio.file.Path-java.nio.file.CopyOption...-"><code class="docutils literal notranslate"><span class="pre">Files.copy(java.nio.file.Path,</span> <span class="pre">java.nio.file.Path,</span> <span class="pre">java.nio.file.CopyOption...)</span></code></a> uses stream
+operations to perform the copy. This can be quite slow, particularly for
+local-to-remote and remote-to-local transfers. <a class="reference external" href="api/com/palantir/giraffe/file/MoreFiles.html#copyLarge-java.nio.file.Path-java.nio.file.Path-"><code class="docutils literal notranslate"><span class="pre">MoreFiles.copyLarge(java.nio.file.Path,</span> <span class="pre">java.nio.file.Path)</span></code></a>
+is significantly faster in these cases and is no slower than the standard copy
+method in the worst case.</p>
+</div>
+<div class="section" id="know-and-use-library-methods">
+<h3><a class="toc-backref" href="#id11">Know and use library methods</a><a class="headerlink" href="#know-and-use-library-methods" title="Permalink to this headline">¶</a></h3>
+<p>The majority of Giraffe’s file system operations are provided by
+<a class="reference external" href="http://docs.oracle.com/javase/8/docs/api/java/nio/file/Files.html"><code class="docutils literal notranslate"><span class="pre">Files</span></code></a>, which is part of Java’s standard library. Familiarity with
+these methods is key to writing effective file manipulation code. Prefer
+library methods over custom versions or command execution.</p>
+<p>Giraffe supplements the standard methods with methods defined in
+<a class="reference external" href="api/com/palantir/giraffe/file/MoreFiles.html"><code class="docutils literal notranslate"><span class="pre">MoreFiles</span></code></a>. These methods implement recursive operations and other
+useful functionality that is omitted by the standard library. In addition to
+being more convenient, methods in <code class="docutils literal notranslate"><span class="pre">MoreFiles</span></code> are often significantly faster
+than custom implementations of the same functionality.</p>
+</div>
+</div>
+<div class="section" id="command-execution">
+<h2><a class="toc-backref" href="#id12">Command Execution</a><a class="headerlink" href="#command-execution" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="don-t-escape-arguments">
+<span id="command-escaping"></span><h3><a class="toc-backref" href="#id13">Don’t escape arguments</a><a class="headerlink" href="#don-t-escape-arguments" title="Permalink to this headline">¶</a></h3>
+<p>Giraffe automatically escapes all command arguments as required by the target
+platform. This means that the literal arguments provided in Java code are
+passed to commands. For example, <code class="docutils literal notranslate"><span class="pre">printargs.sh</span></code> prints each argument on a
+separate line:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">Commands</span><span class="p">.</span><span class="na">execute</span><span class="p">(</span><span class="n">Commands</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&quot;printargs.sh&quot;</span><span class="p">,</span> <span class="s">&quot;a&quot;</span><span class="p">,</span> <span class="s">&quot;b c&quot;</span><span class="p">,</span> <span class="s">&quot;d&quot;</span><span class="p">)).</span><span class="na">getStdOut</span><span class="p">();</span>
+<span class="c1">// =&gt; a</span>
+<span class="c1">//    b c</span>
+<span class="c1">//    d</span>
+
+<span class="n">Commands</span><span class="p">.</span><span class="na">execute</span><span class="p">(</span><span class="n">Commands</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&quot;printargs.sh&quot;</span><span class="p">,</span> <span class="s">&quot;&#39;a&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;\&quot;b c\&quot;&quot;</span><span class="p">)).</span><span class="na">getStdOut</span><span class="p">();</span>
+<span class="c1">// =&gt; &#39;a&#39;</span>
+<span class="c1">//    &quot;b c&quot;</span>
+
+<span class="n">Commands</span><span class="p">.</span><span class="na">execute</span><span class="p">(</span><span class="n">Commands</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&quot;printargs.sh&quot;</span><span class="p">,</span> <span class="s">&quot;b &amp;&amp; $c&quot;</span><span class="p">,</span> <span class="s">&quot;|&quot;</span><span class="p">,</span> <span class="s">&quot;&gt; out&quot;</span><span class="p">)).</span><span class="na">getStdOut</span><span class="p">();</span>
+<span class="c1">// =&gt; b &amp;&amp; $c</span>
+<span class="c1">//    |</span>
+<span class="c1">//    &gt; out</span>
+</pre></div>
+</div>
+<p>Only manually escape arguments if a specific command requires special escape
+sequences.</p>
+</div>
+<div class="section" id="execute-shell-commands-in-a-shell">
+<h3><a class="toc-backref" href="#id14">Execute shell commands in a shell</a><a class="headerlink" href="#execute-shell-commands-in-a-shell" title="Permalink to this headline">¶</a></h3>
+<p>Argument escaping has an important consequence for pipelines and commands that
+use shell behaviors like variable expansion. Because all arguments are passed
+as literals, the shell will not interpret any special characters. Explicitly
+execute a command in a shell when shell behavior is required:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">Commands</span><span class="p">.</span><span class="na">get</span><span class="p">(</span><span class="s">&quot;sh&quot;</span><span class="p">,</span> <span class="s">&quot;-c&quot;</span><span class="p">,</span> <span class="s">&quot;cat file.txt | grep ${WORD} &gt; out.txt&quot;</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>Use shell commands judiciously. Prefer processing data and arguments in Java,
+as this is often easier to understand for readers and reduces dependencies on
+external utilities, which may have different behavior on different platforms.</p>
+<p>Many uses of shell commands can be replaced by <a class="reference external" href="api/com/palantir/giraffe/command/CommandContext.html"><code class="docutils literal notranslate"><span class="pre">CommandContext</span></code></a>. Use
+this class to change the working directory of commands and the values of
+environment variables instead of changing these as part of a shell expression.</p>
+</div>
+<div class="section" id="never-catch-commandexception">
+<h3><a class="toc-backref" href="#id15">Never catch <code class="docutils literal notranslate"><span class="pre">CommandException</span></code></a><a class="headerlink" href="#never-catch-commandexception" title="Permalink to this headline">¶</a></h3>
+<p>By default, the <code class="docutils literal notranslate"><span class="pre">execute</span></code> methods in <a class="reference external" href="api/com/palantir/giraffe/command/Commands.html"><code class="docutils literal notranslate"><span class="pre">Commands</span></code></a> throw an unchecked
+<a class="reference external" href="api/com/palantir/giraffe/command/CommandException.html"><code class="docutils literal notranslate"><span class="pre">CommandException</span></code></a> if the exit status of a command is non-zero.
+Instead of catching this exception, disable exit status checks using
+<a class="reference external" href="api/com/palantir/giraffe/command/CommandContext.html"><code class="docutils literal notranslate"><span class="pre">CommandContext</span></code></a>:</p>
+<div class="highlight-java notranslate"><div class="highlight"><pre><span></span><span class="n">Commands</span><span class="p">.</span><span class="na">execute</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">CommandContext</span><span class="p">.</span><span class="na">ignoreExitStatus</span><span class="p">())</span>
+</pre></div>
+</div>
+<p>In this mode, <code class="docutils literal notranslate"><span class="pre">execute</span></code> will never throw <code class="docutils literal notranslate"><span class="pre">CommandException</span></code>. If the command
+uses a different value to indicate success, use
+<a class="reference external" href="api/com/palantir/giraffe/command/CommandContext.html#requireExitStatus-int-"><code class="docutils literal notranslate"><span class="pre">CommandContext.requireExitStatus(int)</span></code></a> or provide a custom predicate.</p>
+</div>
+<div class="section" id="prefer-absolute-paths-to-modifying-path">
+<h3><a class="toc-backref" href="#id16">Prefer absolute paths to modifying <code class="docutils literal notranslate"><span class="pre">PATH</span></code></a><a class="headerlink" href="#prefer-absolute-paths-to-modifying-path" title="Permalink to this headline">¶</a></h3>
+<p>If a command is not available on the system path, use an absolute path to refer
+to the command instead of modifying the <code class="docutils literal notranslate"><span class="pre">PATH</span></code> environment variable using
+<code class="docutils literal notranslate"><span class="pre">CommandContext</span></code>. While the modified environment always applies to the
+executed command, the use of the environment to find the command to execute is
+system-dependent.</p>
+<p>For instance, the local execution system uses the value of <code class="docutils literal notranslate"><span class="pre">PATH</span></code> that was
+set when the JVM started to locate executables and the modified <code class="docutils literal notranslate"><span class="pre">PATH</span></code> is
+only seen by the new command process. On the other hand, the SSH execution
+system uses the modified <code class="docutils literal notranslate"><span class="pre">PATH</span></code> value to locate executables because it is set
+before the implicit shell tries to find the command.</p>
+</div>
+</div>
+</div>
+
+
+          </div>
+          
+        </div>
+      </div>
+      <div class="sphinxsidebar" role="navigation" aria-label="main navigation">
+        <div class="sphinxsidebarwrapper">
+<p class="logo">
+  <a href="index.html">
+    <img class="logo" src="static/logo.png" alt="Logo"/>
+    
+    <h1 class="logo logo-name">Giraffe</h1>
+    
+  </a>
+</p>
+
+
+
+
+
+
+
+
+<h3>Navigation</h3>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="guide.html">Giraffe Basics</a></li>
+</ul>
+<ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Effective Giraffe</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#connection-management">Connection Management</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#exception-handling">Exception Handling</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#file-operations">File Operations</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#command-execution">Command Execution</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/index.html">API Documentation</a></li>
+</ul>
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="changelog.html">Changelog</a></li>
+<li class="toctree-l1"><a class="reference internal" href="version_numbers.html">About Version Numbers</a></li>
+</ul>
+
+
+<hr />
+<ul>
+    
+    <li class="toctree-l1"><a href="https://github.com/palantir/giraffe">GitHub</a></li>
+    
+    <li class="toctree-l1"><a href="http://palantir.github.io/giraffe/">Main Page</a></li>
+    
+</ul>
+
+<div id="searchbox" style="display: none" role="search">
+  <h3>Quick search</h3>
+    <div class="searchformwrapper">
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    </div>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="footer">
+      &copy;2020, Palantir Technologies.
+      
+      |
+      Powered by <a href="http://sphinx-doc.org/">Sphinx 1.8.5</a>
+      &amp; <a href="https://github.com/bitprophet/alabaster">Alabaster 0.7.12</a>
+      
+    </div>
+
+    
+
+    
+  </body>
+</html>
