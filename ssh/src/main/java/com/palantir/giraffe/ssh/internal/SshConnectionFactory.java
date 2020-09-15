@@ -53,6 +53,10 @@ final class SshConnectionFactory {
     public SSHClient newAuthedConnection(SshSystemRequest request) throws IOException {
         SSHClient sshClient = new SSHClient(config);
         sshClient.getTransport().addHostKeyVerifier(new PromiscuousVerifier());
+        if (request.getKeepaliveInterval() > 0) {
+            sshClient.getConnection().getKeepAlive().setKeepAliveInterval(
+                    request.getKeepaliveInterval());
+        }
 
         try {
             sshClient.connect(request.uri().getHost(), request.getPort());
