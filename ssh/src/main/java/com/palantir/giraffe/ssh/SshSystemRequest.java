@@ -35,6 +35,7 @@ public class SshSystemRequest extends AuthenticatedSystemRequest<SshCredential> 
 
     public static final String PORT_KEY = "port";
     public static final String LOGGER_KEY = "logger";
+    public static final String KEEPALIVE_INTERVAL_KEY = "keepalive_interval";
 
     private static final String DEFAULT_LOGGER_NAME = "com.palantir.giraffe.ssh";
 
@@ -56,6 +57,8 @@ public class SshSystemRequest extends AuthenticatedSystemRequest<SshCredential> 
     private void setDefaults() {
         setPort(uri().getPort());
         setLogger(LoggerFactory.getLogger(DEFAULT_LOGGER_NAME));
+        // by default, no keepalive
+        setKeepaliveInterval(0);
     }
 
     public int getPort() {
@@ -72,6 +75,14 @@ public class SshSystemRequest extends AuthenticatedSystemRequest<SshCredential> 
 
     public void setLogger(Logger logger) {
         set(LOGGER_KEY, logger);
+    }
+
+    public int getKeepaliveInterval() {
+        return get(KEEPALIVE_INTERVAL_KEY, Integer.class);
+    }
+
+    public void setKeepaliveInterval(int keepaliveInterval) {
+        set(KEEPALIVE_INTERVAL_KEY, keepaliveInterval);
     }
 
     public String getUsername() {
