@@ -1,0 +1,11 @@
+version: 2
+jobs:
+  skip:
+
+workflows:
+  version: 2
+  build:
+    jobs:
+      - skip:
+          filters:
+            branches: { ignore: "/.*/" }
