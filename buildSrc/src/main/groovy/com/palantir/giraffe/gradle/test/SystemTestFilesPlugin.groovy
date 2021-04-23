@@ -26,9 +26,7 @@ class SystemTestFilesPlugin implements Plugin<Project> {
 
             // lazily set both the classpath and main class
             classpath { c.classpath }
-            doFirst {
-                main = c.main
-            }
+            mainClass = project.provider({ c.main })
 
             args scriptPath
         }
