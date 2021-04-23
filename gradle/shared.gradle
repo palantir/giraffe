@@ -18,6 +18,7 @@ group = rootProject.group
 
 repositories {
     mavenCentral()
+    jcenter()
 }
 
 checkstyle {

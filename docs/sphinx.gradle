@@ -9,16 +9,8 @@ configurations {
 }
 
 repositories {
-    ivy {
-        name 'pypi'
-        url  'https://files.pythonhosted.org/packages/source/v/'
-        patternLayout {
-            artifact '[organisation]/[module]-[revision].[ext]'
-        }
-        metadataSources {
-            artifact()
-        }
-    }
+    mavenCentral()
+    jcenter()
 }
 
 dependencies {
