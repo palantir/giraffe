@@ -69,11 +69,9 @@ class SystemTestPlugin implements Plugin<Project> {
 
             classpath creatorJar
 
+            // defer configuration until runtime
+            mainClass = project.provider({ getCreatorClass(project) })
             args outputScript
-            doFirst {
-                // defer configuration until runtime
-                main getCreatorClass(project)
-            }
         }
         project.tasks['check'].dependsOn(creatorCheck)
     }
