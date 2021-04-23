@@ -15,6 +15,9 @@ repositories {
         patternLayout {
             artifact '[organisation]/[module]-[revision].[ext]'
         }
+        metadataSources {
+            artifact()
+        }
     }
 }
 
