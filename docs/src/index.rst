@@ -16,7 +16,7 @@ Gradle_ for builds:
 .. code-block:: groovy
 
     repositories {
-        jcenter()
+        mavenCentral()
     }
 
     dependencies {
