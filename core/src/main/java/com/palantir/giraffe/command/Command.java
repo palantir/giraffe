@@ -39,7 +39,7 @@ public interface Command {
      * can be extended by other code. Builders can be reused to create multiple
      * {@code Command} objects.
      *
-     * <h3><a name="arg-handling">Argument Handling</a></h3>
+     * <h3 id="arg-handling">Argument Handling</h3>
      * <p>
      * Each argument is converted to a string by calling {@code toString} or
      * using the string {@code "null"} if the argument is {@code null}.

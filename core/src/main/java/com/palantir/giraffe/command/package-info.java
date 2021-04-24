@@ -40,8 +40,8 @@
  * it cannot be closed. Because the local execution system is created automatically,
  * it does not accept an environment map for configuration. Instead, the following
  * system properties modify the behavior of the system:
- * <p>
- * <table border=1 cellpadding=5 summary="System Properties">
+ * <table border=1>
+ * <caption>System Properties</caption>
  * <tr>
  * <th>Property</th><th>Description</th>
  * <tr>

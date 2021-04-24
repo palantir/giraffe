@@ -32,7 +32,7 @@ import com.palantir.giraffe.internal.OsDetector;
 /**
  * Represents a host with a unique hostname in a network.
  *
- * <h3><a name="localhost-handling">Localhost Handling</a></h3>
+ * <h3 id="localhost-handling">Localhost Handling</h3>
  * <p>
  * This class attempts to resolve all representations of the local host to the
  * same object. The canonical local host object is the one returned by

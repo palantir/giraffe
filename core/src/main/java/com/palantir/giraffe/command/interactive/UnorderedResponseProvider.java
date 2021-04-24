@@ -6,9 +6,9 @@ package com.palantir.giraffe.command.interactive;
 import javax.annotation.CheckForNull;
 
 /**
- * An implementation of {@link AbstractResponseProvider} that matches &ltprompt,
- * response&gt pairs in any order. Only one &ltprompt, response&gt pair may
- * match any given input prompt, but any &ltprompt, response&gt pair may be
+ * An implementation of {@link AbstractResponseProvider} that matches &lt;prompt,
+ * response&gt; pairs in any order. Only one &lt;prompt, response&gt; pair may
+ * match any given input prompt, but any &lt;prompt, response&gt; pair may be
  * matched against any number of times.
  *
  * @param <T> The type of the response

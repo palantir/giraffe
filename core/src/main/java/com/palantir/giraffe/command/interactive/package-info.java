@@ -19,7 +19,7 @@
  * before the command completes.
  * <p>
  * One use case is commands that require user input. This use case
- * is supported by using &ltprompt, response&gt pairs which are modeled
+ * is supported by using &lt;prompt, response&gt; pairs which are modeled
  * by the {@link com.palantir.giraffe.command.interactive.AbstractResponseProvider}
  * object parameterized with {@link java.lang.String}.
  * This object is used by a {@link com.palantir.giraffe.command.interactive.ShellConversation}

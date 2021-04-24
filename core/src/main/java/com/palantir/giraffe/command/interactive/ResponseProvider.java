@@ -16,7 +16,7 @@ import javax.annotation.CheckForNull;
 public interface ResponseProvider<T> {
 
     /**
-     * Represents a &ltprompt, response&gt pair.
+     * Represents a &lt;prompt, response&gt; pair.
      *
      * @author alake
      *
