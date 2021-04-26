@@ -29,13 +29,13 @@ try (HostControlSystem hcs = ssh.open()) {
 
 ## Get Giraffe
 
-Giraffe is available from [JCenter][jcenter] or Palantir's [Bintray repository][bintray].
+Giraffe is available from [Maven Central][maven-central].
 
 With **Gradle**:
 
 ```gradle
 repositories {
-    jcenter()
+    mavenCentral()
 }
 
 dependencies {
@@ -44,8 +44,7 @@ dependencies {
 }
 ```
 
-[jcenter]: https://bintray.com/bintray/jcenter
-[bintray]: http://dl.bintray.com/palantir/releases
+[maven-central]: https://repo1.maven.org/maven2/com/palantir/giraffe/
 
 ## Why Giraffe?
 
