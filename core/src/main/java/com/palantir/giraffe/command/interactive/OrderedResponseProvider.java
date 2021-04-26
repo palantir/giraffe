@@ -8,11 +8,11 @@ import java.util.Iterator;
 import javax.annotation.CheckForNull;
 
 /**
- * An implementation of {@link AbstractResponseProvider} that matches &ltprompt,
- * response&gt pairs sequentially. This means that if A and B are &ltprompt,
- * response&gt pairs and A precedes B, the prompt for B will not be matched
- * until the prompt for A is first matched. Moreover, each &ltprompt,
- * response&gt pair will only ever be matched (and subsequently respond) only
+ * An implementation of {@link AbstractResponseProvider} that matches &lt;prompt,
+ * response&gt; pairs sequentially. This means that if A and B are &lt;prompt,
+ * response&gt; pairs and A precedes B, the prompt for B will not be matched
+ * until the prompt for A is first matched. Moreover, each &lt;prompt,
+ * response&gt; pair will only ever be matched (and subsequently respond) only
  * once.
  *
  * @param <T> The type of the response
