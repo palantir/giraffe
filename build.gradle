@@ -1,3 +1,12 @@
+buildscript {
+    repositories {
+        gradlePluginPortal()
+        mavenCentral()
+        jcenter()
+    dependencies {
+        classpath 'com.palantir.gradle.externalpublish:gradle-external-publish-plugin:0.4.10'
+    }
+}
 plugins {
     id "com.palantir.git-version" version "0.12.3"
     id "com.palantir.external-publish" version "1.2.1"
