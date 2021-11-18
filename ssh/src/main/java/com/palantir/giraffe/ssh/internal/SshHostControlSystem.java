@@ -98,10 +98,19 @@ public final class SshHostControlSystem extends AbstractHostControlSystem {
             checkNotNull(fs, "file system not set");
             checkNotNull(es, "execution system not set");
 
-            SshHostControlSystem system = new SshHostControlSystem(this);
-            fs.setSourceSystem(system);
-            es.setSourceSystem(system);
-            return system;
+            try {
+                SshHostControlSystem system = new SshHostControlSystem(this);
+                fs.setSourceSystem(system);
+                es.setSourceSystem(system);
+                return system;
+            } catch (Throwable t) {
+                try {
+                    request.getCloseContext().close();
+                } catch (IOException e) {
+                    t.addSuppressed(e);
+                }
+                throw t;
+            }
         }
     }
 
