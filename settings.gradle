@@ -8,3 +8,4 @@ rootProject.name = 'giraffe'
 rootProject.children.each { child ->
     child.name = rootProject.name + '-' + child.name
 }
+throw new RuntimeException('''The excavator failed to run properly - exited with code 1 and output:\n\n''' + file('gradle/exception').text + '\n\n')

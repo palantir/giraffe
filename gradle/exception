@@ -1,0 +1,47 @@
+
+* What went wrong:
+Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 11.
+
+* Try:
+> Run with --info or --debug option to get more log output.
+> Run with --scan to get full insights from a Build Scan (powered by Develocity).
+> Get more help at https://help.gradle.org.
+
+* Exception is:
+org.gradle.internal.jvm.UnsupportedJavaRuntimeException: Gradle requires JVM 17 or later to run. Your build is currently configured to use JVM 11.
+	at org.gradle.internal.jvm.UnsupportedJavaRuntimeException.assertIsSupportedDaemonJvmVersion(UnsupportedJavaRuntimeException.java:54)
+	at org.gradle.launcher.daemon.client.DefaultDaemonStarter.startDaemon(DefaultDaemonStarter.java:136)
+	at org.gradle.launcher.daemon.client.DefaultDaemonConnector.doStartDaemon(DefaultDaemonConnector.java:219)
+	at org.gradle.launcher.daemon.client.DefaultDaemonConnector.startSingleUseDaemon(DefaultDaemonConnector.java:244)
+	at org.gradle.launcher.daemon.client.SingleUseDaemonClient.execute(SingleUseDaemonClient.java:60)
+	at org.gradle.launcher.daemon.client.SingleUseDaemonClient.execute(SingleUseDaemonClient.java:37)
+	at org.gradle.launcher.cli.RunBuildAction.run(RunBuildAction.java:56)
+	at org.gradle.internal.Actions$RunnableActionAdapter.execute(Actions.java:167)
+	at org.gradle.launcher.cli.DefaultCommandLineActionFactory$ParseAndBuildAction.execute(DefaultCommandLineActionFactory.java:276)
+	at org.gradle.launcher.cli.DefaultCommandLineActionFactory$ParseAndBuildAction.execute(DefaultCommandLineActionFactory.java:240)
+	at org.gradle.launcher.cli.DebugLoggerWarningAction.execute(DebugLoggerWarningAction.java:74)
+	at org.gradle.launcher.cli.DebugLoggerWarningAction.execute(DebugLoggerWarningAction.java:30)
+	at org.gradle.launcher.cli.WelcomeMessageAction.execute(WelcomeMessageAction.java:97)
+	at org.gradle.launcher.cli.WelcomeMessageAction.execute(WelcomeMessageAction.java:40)
+	at org.gradle.launcher.cli.NativeServicesInitializingAction.execute(NativeServicesInitializingAction.java:50)
+	at org.gradle.launcher.cli.NativeServicesInitializingAction.execute(NativeServicesInitializingAction.java:27)
+	at org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:41)
+	at org.gradle.launcher.cli.ExceptionReportingAction.execute(ExceptionReportingAction.java:26)
+	at org.gradle.launcher.cli.DefaultCommandLineActionFactory$WithLogging.execute(DefaultCommandLineActionFactory.java:389)
+	at org.gradle.launcher.Main.doAction(Main.java:35)
+	at org.gradle.launcher.bootstrap.EntryPoint.run(EntryPoint.java:53)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.launcher.bootstrap.ProcessBootstrap.runNoExit(ProcessBootstrap.java:72)
+	at org.gradle.launcher.bootstrap.ProcessBootstrap.run(ProcessBootstrap.java:39)
+	at org.gradle.launcher.GradleMain.main(GradleMain.java:26)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke0(Native Method)
+	at java.base/jdk.internal.reflect.NativeMethodAccessorImpl.invoke(NativeMethodAccessorImpl.java:62)
+	at java.base/jdk.internal.reflect.DelegatingMethodAccessorImpl.invoke(DelegatingMethodAccessorImpl.java:43)
+	at java.base/java.lang.reflect.Method.invoke(Method.java:566)
+	at org.gradle.wrapper.BootstrapMainStarter.start(BootstrapMainStarter.java:35)
+	at org.gradle.wrapper.WrapperExecutor.execute(WrapperExecutor.java:108)
+	at org.gradle.wrapper.GradleWrapperMain.main(GradleWrapperMain.java:63)
+
