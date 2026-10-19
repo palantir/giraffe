@@ -8,6 +8,13 @@ Gracefully Integrated Remote Access For Files and Execution
 - [Home](http://palantir.github.io/giraffe/)
 - [Documentation](http://palantir.github.io/giraffe/docs/0.10.1/)
 
+> [!WARNING]
+> This library is deprecated and no longer receiving updates.
+>
+> The SSH backend in all released versions contains flaws that make it **unsafe to use
+> with untrusted hosts or on untrusted networks.** We recommend using an alternate
+> library for SSH operations unless both target hosts and the network are trusted.
+
 ## Overview
 
 Giraffe is a Java library that integrates local and remote file system access
